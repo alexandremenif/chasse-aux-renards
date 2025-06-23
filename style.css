@@ -1,0 +1,99 @@
+/* Style de base pour l'application */
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #F0F4F8;
+    color: #1E293B;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard syntax */
+}
+
+/* Styles pour l'interrupteur de mode */
+#mode-toggle:checked ~ .dot {
+    transform: translateX(100%);
+    background-color: #f59e0b; /* amber-500 */
+}
+#mode-toggle:checked ~ .block {
+     background-color: #fcd34d; /* amber-300 */
+}
+
+/* Style pour la récompense en attente */
+.pending-reward {
+    box-shadow: 0 0 0 3px #FBBF24; /* amber-400 */
+    transform: translateY(-2px);
+}
+
+/* Animation pour la transformation magique (ralentie) */
+.fox-transform {
+    animation: transform-sparkle 1.5s ease-in-out;
+    position: absolute;
+}
+
+@keyframes transform-sparkle {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* Animation pour une récompense qui se débloque */
+.reward-unlocked-anim {
+    animation: unlock-pulse 0.6s ease-out;
+}
+
+@keyframes unlock-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Animation pour le compteur */
+.counter-pulse {
+    animation: pulse-anim 0.4s ease-out;
+}
+@keyframes pulse-anim {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); color: #F97316; }
+    100% { transform: scale(1); }
+}
+
+/* Styles pour le bouton flottant (FAB) */
+#controls {
+    position: fixed;
+    bottom: 3.5rem; /* Remonté pour une meilleure visibilité */
+    right: 2.5rem;
+    z-index: 50;
+}
+
+#add-fox-btn {
+    width: 4.5rem; /* 72px */
+    height: 4.5rem; /* 72px */
+    border-radius: 9999px; /* Cercle complet */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #F97316;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+#add-fox-btn:hover {
+    background-color: #EA580C;
+}
+
+#app {
+    padding-bottom: 10rem; /* Marge de sécurité en bas */
+}
+
+/* Style pour le nom de l'enfant cliquable */
+#child-name-selector.clickable {
+    cursor: pointer;
+}
+ #child-name-selector.clickable:hover #child-name-display {
+    color: #D97706;
+ }
+#child-name-selector .arrow {
+    display: none;
+    transition: transform 0.2s ease-in-out;
+}
+#child-name-selector.clickable .arrow {
+    display: inline-block;
+}
