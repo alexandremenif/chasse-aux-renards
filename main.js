@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalText = document.getElementById('modal-text');
     const modalConfirmBtn = document.getElementById('modal-confirm-btn');
     const modalCancelBtn = document.getElementById('modal-cancel-btn');
-
     const childSelectionModal = document.getElementById('child-selection-modal');
     const childList = document.getElementById('child-list');
 
@@ -50,10 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const silver = Math.floor((total % 100) / 10);
         const normal = total % 10;
         return { gold, silver, normal };
-    };
-    
-    const createTokenSVG = (type, sizeClass = 'w-8 h-8') => {
-        return `<svg class="${sizeClass} inline-block"><use href="#${type}-fox-token"></use></svg>`;
     };
     
     const getPendingCost = () => {
@@ -75,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const available = getAvailableTokens();
         const { gold, silver, normal } = calculateFoxes(available);
         
-        goldContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-yellow-600">Dorés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${gold}</div>${createTokenSVG('gold', 'w-10 h-10')}</div>`;
-        silverContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-slate-600">Argentés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${silver}</div>${createTokenSVG('silver', 'w-10 h-10')}</div>`;
-        normalContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-orange-600">Normaux</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${normal}</div>${createTokenSVG('orange', 'w-10 h-10')}</div>`;
+        goldContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-yellow-600">Dorés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${gold}</div><renard-icon type="gold" size="40px"></renard-icon></div>`;
+        silverContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-slate-600">Argentés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${silver}</div><renard-icon type="silver" size="40px"></renard-icon></div>`;
+        normalContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-orange-600">Normaux</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${normal}</div><renard-icon type="normal" size="40px"></renard-icon></div>`;
     };
 
     const renderStore = (isFirstLoad = false) => {
@@ -107,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="text-4xl mb-2">${reward.icon}</div>
                 <h4 class="text-lg font-bold">${reward.name}</h4>
                 <div class="mt-2 font-black text-xl flex items-center justify-center gap-2 ${canAfford ? 'text-amber-500' : ''}">
-                    ${reward.cost} ${createTokenSVG('orange', 'w-6 h-6 ml-1')}
+                    ${reward.cost} <renard-icon size="24px" style="vertical-align: middle;"></renard-icon>
                 </div>
             `;
             
@@ -144,52 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const addFox = () => {
         const child = getCurrentChild();
-        const oldAvailable = getAvailableTokens();
-        
         child.totalTokens++;
-        render(); // Mise à jour immédiate de l'interface
-
-        const newAvailable = getAvailableTokens();
-
-        const normalCounterValue = normalContainer.querySelector('.counter-value');
-        if(normalCounterValue){
-            normalCounterValue.classList.add('counter-pulse');
-            setTimeout(() => normalCounterValue.classList.remove('counter-pulse'), 400);
-        }
-        
-        // Vérifier si une transformation est nécessaire
-        if (Math.floor(newAvailable / 10) < Math.floor(oldAvailable / 10) || (oldAvailable % 10 === 9 && newAvailable % 10 === 0) ) {
-            if(Math.floor(newAvailable / 100) < Math.floor(oldAvailable / 100)) {
-                animateTransform(silverContainer, goldContainer);
-            } else {
-                animateTransform(normalContainer, silverContainer);
-            }
-        }
+        render();
     };
     
-    function animateTransform(fromContainer, toContainer) {
-        const fromRect = fromContainer.getBoundingClientRect();
-        const toRect = toContainer.getBoundingClientRect();
-        for (let i = 0; i < 10; i++) {
-            const particle = document.createElement('div');
-            const type = fromContainer.id.includes('normal') ? 'orange' : 'silver';
-            particle.innerHTML = createTokenSVG(type, 'w-10 h-10');
-            particle.className = 'fox-transform';
-            particle.style.position = 'fixed';
-            particle.style.left = `${fromRect.left + fromRect.width / 2 + (Math.random() - 0.5) * 40}px`;
-            particle.style.top = `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40}px`;
-            document.body.appendChild(particle);
-            setTimeout(() => {
-                particle.style.transition = 'all 1.2s ease-in-out';
-                particle.style.left = `${toRect.left + toRect.width / 2}px`;
-                particle.style.top = `${toRect.top + toRect.height / 2}px`;
-                particle.style.transform = 'scale(0)';
-                particle.style.opacity = '0';
-            }, 50);
-            setTimeout(() => particle.remove(), 1600);
-        }
-    }
-
     const showConfirmationModal = (reward) => {
         const child = getCurrentChild();
         modalTitle.textContent = `Valider ${reward.name} ?`;
@@ -207,11 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
             render();
         });
         
-        modal.classList.remove('hidden');
+        modal.classList.add('hidden');
     }
 
     const showChildSelectionModal = () => {
-        childList.innerHTML = ''; // Vide la liste
+        childList.innerHTML = '';
         state.children.forEach(child => {
             const childButton = document.createElement('button');
             childButton.textContent = child.name;
@@ -234,19 +187,23 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
     
+    const setupInitialIcons = () => {
+        // Remplace le SVG statique du bouton flottant par notre composant.
+        addFoxBtn.innerHTML = ''; 
+        const icon = document.createElement('renard-icon');
+        icon.setAttribute('type', 'white');
+        icon.setAttribute('size', '4.5rem');
+        addFoxBtn.appendChild(icon);
+    };
+
     const render = (isFirstLoad = false) => {
         const child = getCurrentChild();
         childNameDisplay.textContent = `de ${child.name}`;
 
-        if (state.isParentMode) {
-            controlsSection.classList.remove('hidden');
-            modeLabel.textContent = 'Mode Parent';
-            childNameSelector.classList.add('clickable');
-        } else {
-            controlsSection.classList.add('hidden');
-            modeLabel.textContent = 'Mode Enfant';
-            childNameSelector.classList.remove('clickable');
-        }
+        controlsSection.classList.toggle('hidden', !state.isParentMode);
+        modeLabel.textContent = state.isParentMode ? 'Mode Parent' : 'Mode Enfant';
+        childNameSelector.classList.toggle('clickable', state.isParentMode);
+        
         renderDashboard();
         renderStore(isFirstLoad);
     };
@@ -254,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addFoxBtn.addEventListener('click', addFox);
     modeToggle.addEventListener('change', toggleMode);
     modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
-    childNameSelector.addEventListener('click', (e) => {
+    childNameSelector.addEventListener('click', () => {
         if (state.isParentMode) {
             showChildSelectionModal();
         }
@@ -266,5 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Initialisation
+    setupInitialIcons();
     render(true);
 });
