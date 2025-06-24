@@ -56,23 +56,12 @@ body {
     100% { transform: scale(1); }
 }
 
-/* Styles pour le bouton flottant (FAB) */
+/* Styles pour le conteneur du bouton flottant (FAB) */
 #controls {
     position: fixed;
     bottom: 3.5rem; /* Remonté pour une meilleure visibilité */
     right: 2.5rem;
     z-index: 50;
-}
-
-#add-fox-btn {
-    width: 4.5rem; /* 72px */
-    height: 4.5rem; /* 72px */
-    border-radius: 9999px; /* Cercle complet */
-    background-color: #F97316;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-#add-fox-btn:hover {
-    background-color: #EA580C;
 }
 
 #app {

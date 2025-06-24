@@ -186,15 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isParentMode = modeToggle.checked;
         render();
     };
-    
-    const setupInitialIcons = () => {
-        // Remplace le SVG statique du bouton flottant par notre composant.
-        addFoxBtn.innerHTML = ''; 
-        const icon = document.createElement('renard-icon');
-        icon.setAttribute('type', 'white');
-        icon.setAttribute('size', '4.5rem');
-        addFoxBtn.appendChild(icon);
-    };
 
     const render = (isFirstLoad = false) => {
         const child = getCurrentChild();
@@ -223,6 +214,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Initialisation
-    setupInitialIcons();
     render(true);
 });
