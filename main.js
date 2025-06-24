@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- ÉLÉMENTS DU DOM ---
-    const goldContainer = document.getElementById('gold-fox-container');
-    const silverContainer = document.getElementById('silver-fox-container');
-    const normalContainer = document.getElementById('normal-fox-container');
+    const renardCounter = document.querySelector('renard-counter');
     const rewardsGrid = document.getElementById('rewards-grid');
     const addFoxBtn = document.getElementById('add-fox-btn');
     const controlsSection = document.getElementById('controls');
@@ -43,13 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FONCTIONS DE LOGIQUE ---
 
     const getCurrentChild = () => state.children.find(c => c.id === state.currentChildId);
-
-    const calculateFoxes = (total) => {
-        const gold = Math.floor(total / 100);
-        const silver = Math.floor((total % 100) / 10);
-        const normal = total % 10;
-        return { gold, silver, normal };
-    };
     
     const getPendingCost = () => {
         const child = getCurrentChild();
@@ -65,15 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!child) return 0;
         return child.totalTokens - getPendingCost();
     }
-
-    const renderDashboard = () => {
-        const available = getAvailableTokens();
-        const { gold, silver, normal } = calculateFoxes(available);
-        
-        goldContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-yellow-600">Dorés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${gold}</div><renard-icon type="gold" size="40px"></renard-icon></div>`;
-        silverContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-slate-600">Argentés</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${silver}</div><renard-icon type="silver" size="40px"></renard-icon></div>`;
-        normalContainer.innerHTML = `<h3 class="text-xl font-bold mb-2 text-orange-600">Normaux</h3><div class="flex items-center justify-center gap-2"><div class="text-4xl font-black counter-value">${normal}</div><renard-icon type="normal" size="40px"></renard-icon></div>`;
-    };
 
     const renderStore = (isFirstLoad = false) => {
         rewardsGrid.innerHTML = '';
@@ -195,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modeLabel.textContent = state.isParentMode ? 'Mode Parent' : 'Mode Enfant';
         childNameSelector.classList.toggle('clickable', state.isParentMode);
         
-        renderDashboard();
+        renardCounter.setAttribute('total', getAvailableTokens());
         renderStore(isFirstLoad);
     };
 

@@ -23,18 +23,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Animation pour la transformation magique (ralentie) */
-.fox-transform {
-    animation: transform-sparkle 1.5s ease-in-out;
-    position: absolute;
-}
-
-@keyframes transform-sparkle {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 0.5; }
-    100% { transform: scale(0); opacity: 0; }
-}
-
 /* Animation pour une récompense qui se débloque */
 .reward-unlocked-anim {
     animation: unlock-pulse 0.6s ease-out;
@@ -43,16 +31,6 @@ body {
 @keyframes unlock-pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Animation pour le compteur */
-.counter-pulse {
-    animation: pulse-anim 0.4s ease-out;
-}
-@keyframes pulse-anim {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.25); color: #F97316; }
     100% { transform: scale(1); }
 }
 

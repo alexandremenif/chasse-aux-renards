@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="style.css">
     <script type="module" src="components/renard-icon.js"></script>
     <script type="module" src="components/add-renard-button.js"></script>
+    <script type="module" src="components/renard-counter.js"></script>
     <script type="module" src="main.js"></script>
 </head>
 <body class="antialiased">
@@ -45,10 +46,8 @@
         <!-- Tableau de bord des renards -->
         <section id="dashboard" class="bg-white p-6 rounded-2xl shadow-lg mb-8">
             <h2 class="text-2xl font-bold mb-4 text-center">Ton Trésor Disponible</h2>
-            <div id="fox-counters" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div id="gold-fox-container" class="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200"></div>
-                <div id="silver-fox-container" class="bg-slate-50 p-4 rounded-xl border-2 border-slate-200"></div>
-                <div id="normal-fox-container" class="bg-orange-50 p-4 rounded-xl border-2 border-orange-200"></div>
+            <div id="fox-counters">
+                <renard-counter total="0"></renard-counter>
             </div>
         </section>
 
