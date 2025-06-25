@@ -53,51 +53,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return child.totalTokens - getPendingCost();
     }
 
-    const renderStore = (isFirstLoad = false) => {
+    const renderStore = () => {
         rewardsGrid.innerHTML = '';
         const availableTokens = getAvailableTokens();
+        const child = getCurrentChild();
 
         rewards.forEach(reward => {
-            const child = getCurrentChild();
             const isPending = child.pendingRewardIds.includes(reward.id);
             const canAfford = availableTokens >= reward.cost || isPending;
             
-            const rewardCard = document.createElement('div');
-            rewardCard.dataset.id = reward.id;
-            rewardCard.className = `p-4 rounded-xl border-2 transition-all duration-300 relative text-center`;
+            const rewardCard = document.createElement('reward-card');
+            rewardCard.id = `reward-${reward.id}`;
+            rewardCard.setAttribute('name', reward.name);
+            rewardCard.setAttribute('cost', reward.cost);
+            rewardCard.setAttribute('icon', reward.icon);
+            rewardCard.setAttribute('is-pending', isPending);
+            rewardCard.setAttribute('can-afford', canAfford);
+            rewardCard.setAttribute('is-parent-mode', state.isParentMode);
             
-            let cardClasses = [];
-            if (isPending) {
-                cardClasses.push('pending-reward', 'bg-white');
-            } else if (canAfford) {
-                cardClasses.push('bg-white', 'shadow-md', 'hover:shadow-lg', 'hover:-translate-y-1', 'cursor-pointer');
-            } else {
-                cardClasses.push('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
-            }
-            rewardCard.classList.add(...cardClasses);
+            rewardCard.addEventListener('toggle-pending', () => togglePendingReward(reward));
+            rewardCard.addEventListener('validate-reward', () => showConfirmationModal(reward));
             
-            rewardCard.innerHTML = `
-                <div class="text-4xl mb-2">${reward.icon}</div>
-                <h4 class="text-lg font-bold">${reward.name}</h4>
-                <div class="mt-2 font-black text-xl flex items-center justify-center gap-2 ${canAfford ? 'text-amber-500' : ''}">
-                    ${reward.cost} <renard-icon size="24px" style="vertical-align: middle;"></renard-icon>
-                </div>
-            `;
-            
-            if (isPending && state.isParentMode) {
-                const validateButton = document.createElement('button');
-                validateButton.className = 'validate-btn absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg';
-                validateButton.innerHTML = `<i class="fas fa-check"></i>`;
-                validateButton.onclick = (e) => {
-                    e.stopPropagation();
-                    showConfirmationModal(reward);
-                };
-                rewardCard.appendChild(validateButton);
-            }
-            
-            if(canAfford) {
-                rewardCard.addEventListener('click', () => togglePendingReward(reward));
-            }
             rewardsGrid.appendChild(rewardCard);
         });
     };
@@ -118,12 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addFox = () => {
         const child = getCurrentChild();
         child.totalTokens++;
-        
-        // On appelle la fonction de rendu principale.
-        // Elle se chargera de mettre à jour le compteur ET les cartes de récompenses.
         render();
-
-        // On déclenche l'animation après que tout a été redessiné.
         renardCounter.playAnimation();
     };
     
@@ -138,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             child.pendingRewardIds = child.pendingRewardIds.filter(id => id !== reward.id);
             render();
-            // Retirer l'écouteur après utilisation pour éviter les fuites
             modal.removeEventListener('confirmed', confirmHandler);
         };
         
@@ -174,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
 
-    const render = (isFirstLoad = false) => {
+    const render = () => {
         const child = getCurrentChild();
         childNameDisplay.textContent = `de ${child.name}`;
 
@@ -183,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         childNameSelector.classList.toggle('clickable', state.isParentMode);
         
         renardCounter.setAttribute('total', getAvailableTokens());
-        renderStore(isFirstLoad);
+        renderStore();
     };
 
     addFoxBtn.addEventListener('click', addFox);
@@ -200,5 +170,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Initialisation
-    render(true);
+    render();
 });

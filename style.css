@@ -17,12 +17,6 @@ body {
      background-color: #fcd34d; /* amber-300 */
 }
 
-/* Style pour la récompense en attente */
-.pending-reward {
-    box-shadow: 0 0 0 3px #FBBF24; /* amber-400 */
-    transform: translateY(-2px);
-}
-
 /* Animation pour une récompense qui se débloque */
 .reward-unlocked-anim {
     animation: unlock-pulse 0.6s ease-out;
