@@ -16,6 +16,7 @@
     <script type="module" src="components/renard-counter.js"></script>
     <script type="module" src="components/confirmation-modal.js"></script>
     <script type="module" src="components/reward-card.js"></script>
+    <script type="module" src="components/reward-board.js"></script>
     <script type="module" src="main.js"></script>
 </head>
 <body class="antialiased">
@@ -43,22 +44,8 @@
             </div>
         </header>
 
-        <!-- Tableau de bord des renards -->
-        <section id="dashboard" class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-            <h2 class="text-2xl font-bold mb-4 text-center">Ton Trésor Disponible</h2>
-            <div id="fox-counters">
-                <renard-counter total="0"></renard-counter>
-            </div>
-        </section>
-
-        <!-- Magasin des récompenses -->
-        <section id="store" class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-            <h2 class="text-2xl font-bold mb-4 text-center">Les Récompenses</h2>
-            <div id="rewards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Les récompenses seront générées ici par JavaScript -->
-            </div>
-        </section>
-
+        <reward-board id="reward-board"></reward-board>
+        
         <!-- Panneau de contrôle du parent (bouton flottant) -->
         <div id="controls" class="hidden">
              <add-renard-button id="add-fox-btn"></add-renard-button>
@@ -66,7 +53,7 @@
 
     </div>
     
-    <!-- Modale de confirmation -->
+    <!-- Modal de confirmation -->
     <confirmation-modal id="confirmation-modal"></confirmation-modal>
     
     <!-- Modale de sélection d'enfant -->
