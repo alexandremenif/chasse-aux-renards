@@ -30,10 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const childNameSelector = document.getElementById('child-name-selector');
     const childNameDisplay = document.getElementById('child-name-display');
     const modal = document.getElementById('confirmation-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalText = document.getElementById('modal-text');
-    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-    const modalCancelBtn = document.getElementById('modal-cancel-btn');
     const childSelectionModal = document.getElementById('child-selection-modal');
     const childList = document.getElementById('child-list');
 
@@ -128,22 +124,25 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const showConfirmationModal = (reward) => {
         const child = getCurrentChild();
-        modalTitle.textContent = `Valider ${reward.name} ?`;
-        modalText.innerHTML = `Cette action dépensera <strong>${reward.cost} renards</strong> pour <strong>${child.name}</strong> et est définitive.`;
+        modal.setAttribute('title', `Valider ${reward.name} ?`);
+        modal.setAttribute('message', `Cette action dépensera <strong>${reward.cost} renards</strong> pour <strong>${child.name}</strong> et est définitive.`);
         
-        const newConfirmBtn = modalConfirmBtn.cloneNode(true);
-        modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
-        
-        newConfirmBtn.addEventListener('click', () => {
+        const confirmHandler = () => {
             if (child.totalTokens >= reward.cost) {
                 child.totalTokens -= reward.cost;
             }
             child.pendingRewardIds = child.pendingRewardIds.filter(id => id !== reward.id);
-            modal.classList.add('hidden');
             render();
-        });
+            // Retirer l'écouteur après utilisation pour éviter les fuites
+            modal.removeEventListener('confirmed', confirmHandler);
+        };
         
-        modal.classList.add('hidden');
+        modal.addEventListener('confirmed', confirmHandler, { once: true });
+        modal.addEventListener('cancelled', () => {
+             modal.removeEventListener('confirmed', confirmHandler);
+        }, { once: true });
+        
+        modal.setAttribute('visible', '');
     }
 
     const showChildSelectionModal = () => {
@@ -184,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addFoxBtn.addEventListener('click', addFox);
     modeToggle.addEventListener('change', toggleMode);
-    modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
     childNameSelector.addEventListener('click', () => {
         if (state.isParentMode) {
             showChildSelectionModal();
