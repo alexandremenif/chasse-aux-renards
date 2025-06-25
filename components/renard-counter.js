@@ -17,8 +17,8 @@ class RenardCounter extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue !== newValue) {
-            const newTotal = parseInt(newValue || '0', 10);
+        const newTotal = parseInt(newValue || '0', 10);
+        if (this.total !== newTotal) {
             this.render(this.total, newTotal);
             this.total = newTotal; // Met à jour le total interne après le rendu
         }
@@ -31,56 +31,80 @@ class RenardCounter extends HTMLElement {
         return { gold, silver, normal };
     }
 
-    render(oldTotal = null, newTotal = null) {
-        const total = this.total;
-        const { gold, silver, normal } = this._calculateRenards(total);
-
-        // Le HTML est dessiné une seule fois dans connectedCallback, puis les chiffres sont mis à jour.
-        if (oldTotal === null) {
-            this.shadowRoot.innerHTML = `
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
-                    @import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
-                    .counter-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1rem; font-family: 'Nunito', sans-serif; }
-                    @media (min-width: 768px) { .counter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-                    .counter-value { font-weight: 900; }
-                    .counter-pulse { animation: pulse-anim 0.4s ease-out; }
-                    @keyframes pulse-anim {
-                        0% { transform: scale(1); }
-                        50% { transform: scale(1.25); color: #F97316; }
-                        100% { transform: scale(1); }
-                    }
-                </style>
-                <div class="counter-grid text-center">
-                    <div id="gold-container" class="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200">
-                        <h3 class="text-xl font-bold mb-2 text-yellow-600">Dorés</h3>
-                        <div class="flex items-center justify-center gap-2">
-                            <div id="gold-value" class="text-4xl counter-value">${gold}</div>
-                            <renard-icon type="gold" size="40px"></renard-icon>
-                        </div>
-                    </div>
-                    <div id="silver-container" class="bg-slate-50 p-4 rounded-xl border-2 border-slate-200">
-                        <h3 class="text-xl font-bold mb-2 text-slate-600">Argentés</h3>
-                        <div class="flex items-center justify-center gap-2">
-                            <div id="silver-value" class="text-4xl counter-value">${silver}</div>
-                            <renard-icon type="silver" size="40px"></renard-icon>
-                        </div>
-                    </div>
-                    <div id="normal-container" class="bg-orange-50 p-4 rounded-xl border-2 border-orange-200">
-                        <h3 class="text-xl font-bold mb-2 text-orange-600">Normaux</h3>
-                        <div class="flex items-center justify-center gap-2">
-                            <div id="normal-value" class="text-4xl counter-value">${normal}</div>
-                            <renard-icon type="normal" size="40px"></renard-icon>
-                        </div>
-                    </div>
+    _createCounterBlockHTML(id, label, count, iconType, colors) {
+        return `
+            <div id="${id}" class="counter-block" style="background-color: ${colors.bg}; border-color: ${colors.border};">
+                <h3 class="counter-label" style="color: ${colors.text};">
+                    ${label}
+                </h3>
+                <div class="counter-display">
+                    <div id="${iconType}-value" class="counter-value">${count}</div>
+                    <renard-icon type="${iconType}" size="40px"></renard-icon>
                 </div>
-            `;
-        } else {
-             this.shadowRoot.getElementById('gold-value').textContent = gold;
-             this.shadowRoot.getElementById('silver-value').textContent = silver;
-             this.shadowRoot.getElementById('normal-value').textContent = normal;
-        }
+            </div>
+        `;
+    }
 
+    render(oldTotal = null, newTotal = null) {
+        const totalToRender = newTotal !== null ? newTotal : this.total;
+        const { gold, silver, normal } = this._calculateRenards(totalToRender);
+
+        const goldHTML = this._createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
+        const silverHTML = this._createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
+        const normalHTML = this._createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    font-family: inherit; 
+                }
+                .counter-grid {
+                    display: grid;
+                    grid-template-columns: repeat(1, minmax(0, 1fr));
+                    gap: 1rem;
+                    text-align: center;
+                }
+                @media (min-width: 768px) {
+                    .counter-grid {
+                        grid-template-columns: repeat(3, minmax(0, 1fr));
+                    }
+                }
+                .counter-block {
+                    padding: 1rem;
+                    border-radius: 0.75rem;
+                    border-width: 2px;
+                }
+                .counter-label {
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    margin-bottom: 0.5rem;
+                }
+                .counter-display {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                }
+                .counter-value {
+                    font-size: 2.25rem;
+                    font-weight: 900;
+                }
+                .counter-pulse {
+                    animation: pulse-anim 0.4s ease-out;
+                }
+                @keyframes pulse-anim {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.25); color: #F97316; }
+                    100% { transform: scale(1); }
+                }
+            </style>
+            <div class="counter-grid">
+                ${goldHTML}
+                ${silverHTML}
+                ${normalHTML}
+            </div>
+        `;
+        
         if (oldTotal !== null && newTotal !== null) {
             const oldCounts = this._calculateRenards(oldTotal);
             const newCounts = this._calculateRenards(newTotal);
@@ -118,7 +142,8 @@ class RenardCounter extends HTMLElement {
                 zIndex: '100',
                 left: `${fromRect.left + fromRect.width / 2 + (Math.random() - 0.5) * 40 - 20}px`,
                 top: `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40 - 20}px`,
-                transition: 'all 1.2s ease-in-out'
+                transition: 'all 1.2s ease-in-out',
+                pointerEvents: 'none'
             });
             
             document.body.appendChild(particle);
