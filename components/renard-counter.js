@@ -4,11 +4,14 @@ class RenardCounter extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.total = 0; // Garde une trace interne du total pour comparer les changements
+        this.total = 0;
+        this.previousTotal = 0;
+        this.isFirstRender = true;
     }
 
     connectedCallback() {
         this.total = parseInt(this.getAttribute('total') || '0', 10);
+        this.previousTotal = this.total;
         this.render();
     }
 
@@ -17,10 +20,36 @@ class RenardCounter extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        const newTotal = parseInt(newValue || '0', 10);
-        if (this.total !== newTotal) {
-            this.render(this.total, newTotal);
-            this.total = newTotal; // Met à jour le total interne après le rendu
+        // This is the "State Manager". It just records the state change.
+        this.previousTotal = parseInt(oldValue || '0', 10);
+        this.total = parseInt(newValue || '0', 10);
+        this.render();
+    }
+    
+    /**
+     * PUBLIC METHOD: The "Action Hero". It compares the last known state
+     * with the current state and triggers animations accordingly.
+     */
+    playAnimation() {
+        // We only animate if the total has increased.
+        if (this.total <= this.previousTotal) {
+            return;
+        }
+
+        const oldCounts = this._calculateRenards(this.previousTotal);
+        const newCounts = this._calculateRenards(this.total);
+
+        const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
+        if (normalCounterEl) {
+            normalCounterEl.classList.add('counter-pulse');
+            setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), 400);
+        }
+
+        if (newCounts.silver > oldCounts.silver) {
+            this._animateTransform('normal-container', 'silver-container', 'normal');
+        }
+        if (newCounts.gold > oldCounts.gold) {
+            this._animateTransform('silver-container', 'gold-container', 'silver');
         }
     }
 
@@ -38,90 +67,52 @@ class RenardCounter extends HTMLElement {
                     ${label}
                 </h3>
                 <div class="counter-display">
-                    <div id="${iconType}-value" class="counter-value">${count}</div>
+                    <div class="counter-value">${count}</div>
                     <renard-icon type="${iconType}" size="40px"></renard-icon>
                 </div>
             </div>
         `;
     }
 
-    render(oldTotal = null, newTotal = null) {
-        const totalToRender = newTotal !== null ? newTotal : this.total;
-        const { gold, silver, normal } = this._calculateRenards(totalToRender);
+    render() {
+        // This is now a "pure" display function. It only draws what it's told.
+        const { gold, silver, normal } = this._calculateRenards(this.total);
 
-        const goldHTML = this._createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
-        const silverHTML = this._createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
-        const normalHTML = this._createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
+        // Optimization: Create the full structure on the first render only.
+        if (this.isFirstRender) {
+            const goldHTML = this._createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
+            const silverHTML = this._createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
+            const normalHTML = this._createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
 
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host {
-                    font-family: inherit; 
-                }
-                .counter-grid {
-                    display: grid;
-                    grid-template-columns: repeat(1, minmax(0, 1fr));
-                    gap: 1rem;
-                    text-align: center;
-                }
-                @media (min-width: 768px) {
-                    .counter-grid {
-                        grid-template-columns: repeat(3, minmax(0, 1fr));
+            this.shadowRoot.innerHTML = `
+                <style>
+                    :host { font-family: inherit; }
+                    .counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; }
+                    .counter-block { padding: 1rem; border-radius: 0.75rem; border-width: 2px; }
+                    .counter-label { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+                    .counter-display { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+                    .counter-value { font-size: 2.25rem; font-weight: 900; }
+                    .counter-pulse { animation: pulse-anim 0.4s ease-out; }
+                    @keyframes pulse-anim {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.25); color: #F97316; }
+                        100% { transform: scale(1); }
                     }
-                }
-                .counter-block {
-                    padding: 1rem;
-                    border-radius: 0.75rem;
-                    border-width: 2px;
-                }
-                .counter-label {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    margin-bottom: 0.5rem;
-                }
-                .counter-display {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                }
-                .counter-value {
-                    font-size: 2.25rem;
-                    font-weight: 900;
-                }
-                .counter-pulse {
-                    animation: pulse-anim 0.4s ease-out;
-                }
-                @keyframes pulse-anim {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.25); color: #F97316; }
-                    100% { transform: scale(1); }
-                }
-            </style>
-            <div class="counter-grid">
-                ${goldHTML}
-                ${silverHTML}
-                ${normalHTML}
-            </div>
-        `;
-        
-        if (oldTotal !== null && newTotal !== null) {
-            const oldCounts = this._calculateRenards(oldTotal);
-            const newCounts = this._calculateRenards(newTotal);
-
-            if (newTotal > oldTotal) {
-                const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
-                if (normalCounterEl) {
-                    normalCounterEl.classList.add('counter-pulse');
-                    setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), 400);
-                }
-            }
-            if (newCounts.silver > oldCounts.silver) {
-                this._animateTransform('normal-container', 'silver-container', 'normal');
-            }
-            if (newCounts.gold > oldCounts.gold) {
-                this._animateTransform('silver-container', 'gold-container', 'silver');
-            }
+                </style>
+                <div class="counter-grid">
+                    ${goldHTML}
+                    ${silverHTML}
+                    ${normalHTML}
+                </div>
+            `;
+            this.isFirstRender = false;
+        } else {
+             const goldValue = this.shadowRoot.querySelector('#gold-container .counter-value');
+             const silverValue = this.shadowRoot.querySelector('#silver-container .counter-value');
+             const normalValue = this.shadowRoot.querySelector('#normal-container .counter-value');
+             if(goldValue) goldValue.textContent = gold;
+             if(silverValue) silverValue.textContent = silver;
+             if(normalValue) normalValue.textContent = normal;
         }
     }
 
@@ -138,12 +129,10 @@ class RenardCounter extends HTMLElement {
             particle.setAttribute('type', particleType);
             particle.setAttribute('size', '40px');
             Object.assign(particle.style, {
-                position: 'fixed',
-                zIndex: '100',
+                position: 'fixed', zIndex: '100',
                 left: `${fromRect.left + fromRect.width / 2 + (Math.random() - 0.5) * 40 - 20}px`,
                 top: `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40 - 20}px`,
-                transition: 'all 1.2s ease-in-out',
-                pointerEvents: 'none'
+                transition: 'all 1.2s ease-in-out', pointerEvents: 'none'
             });
             
             document.body.appendChild(particle);

@@ -122,7 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addFox = () => {
         const child = getCurrentChild();
         child.totalTokens++;
-        render();
+        renardCounter.setAttribute('total', getAvailableTokens());
+        renardCounter.playAnimation();
     };
     
     const showConfirmationModal = (reward) => {
