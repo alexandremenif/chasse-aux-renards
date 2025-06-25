@@ -118,7 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addFox = () => {
         const child = getCurrentChild();
         child.totalTokens++;
-        renardCounter.setAttribute('total', getAvailableTokens());
+        
+        // On appelle la fonction de rendu principale.
+        // Elle se chargera de mettre à jour le compteur ET les cartes de récompenses.
+        render();
+
+        // On déclenche l'animation après que tout a été redessiné.
         renardCounter.playAnimation();
     };
     
