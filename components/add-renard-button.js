@@ -1,4 +1,5 @@
 // components/add-renard-button.js
+import { rewardBoardService } from '../services/reward-board.js';
 
 class AddRenardButton extends HTMLElement {
     constructor() {
@@ -6,32 +7,39 @@ class AddRenardButton extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
 
+    static get observedAttributes() {
+        return ['board-id'];
+    }
+
     connectedCallback() {
         this.render();
+        this.shadowRoot.querySelector('button').addEventListener('click', () => {
+            const boardId = this.getAttribute('board-id');
+            if (boardId) {
+                rewardBoardService.incrementToken(boardId);
+            }
+        });
     }
 
     render() {
-        const size = '4.5rem'; // La taille est définie ici comme une variable.
+        const size = '4.5rem';
 
         this.shadowRoot.innerHTML = `
             <style>
                 button {
-                    /* Style du bouton, repris de #add-fox-btn dans style.css */
                     width: ${size};
                     height: ${size};
-                    border-radius: 9999px; /* Cercle complet */
-                    background-color: #F97316; /* orange-500 */
+                    border-radius: 9999px;
+                    background-color: #F97316;
                     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
                     border: none;
                     cursor: pointer;
-                    padding: 0; /* On s'assure qu'il n'y a pas de padding */
-                    
-                    /* Animation */
+                    padding: 0;
                     transition: all 0.2s ease-out;
                 }
 
                 button:hover {
-                    background-color: #EA580C; /* orange-600 */
+                    background-color: #EA580C;
                     transform: scale(1.05);
                 }
             </style>

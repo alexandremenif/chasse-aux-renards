@@ -1,28 +1,22 @@
+// main.js
+import './services/reward-board.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- ÉTAT DE L'APPLICATION ---
+    // --- Global State ---
     let state = {
-        children: [
-            { id: 1, name: 'Daniel', totalTokens: 0, pendingRewardIds: [] },
-            { id: 2, name: 'Evelyne', totalTokens: 0, pendingRewardIds: [] }
-        ],
         currentChildId: 1,
         isParentMode: false,
+        // The list of children, now containing their associated boardId
+        children: [
+            { id: 1, name: 'Daniel', boardId: 'board-1' },
+            { id: 2, name: 'Evelyne', boardId: 'board-2' }
+        ]
     };
 
-    // --- DONNÉES STATIQUES ---
-    const rewards = [
-        { id: 1, name: "Choisir le film", cost: 15, icon: '🎬' },
-        { id: 2, name: "30 min de jeu spécial", cost: 20, icon: '🎲' },
-        { id: 3, name: "Préparer un gâteau", cost: 35, icon: '🍰' },
-        { id: 4, name: "Soirée pyjama", cost: 50, icon: '⛺' },
-        { id: 5, name: "Sortie au parc", cost: 75, icon: '🌳' },
-        { id: 6, name: "Le 'Grand Cadeau'", cost: 150, icon: '🎁' },
-    ];
-
-    // --- ÉLÉMENTS DU DOM ---
+    // --- DOM Elements ---
     const rewardBoard = document.getElementById('reward-board');
-    const addFoxBtn = document.getElementById('add-fox-btn');
+    const addRenardBtn = document.getElementById('add-renard-btn');
     const controlsSection = document.getElementById('controls');
     const modeToggle = document.getElementById('mode-toggle');
     const modeLabel = document.getElementById('mode-label');
@@ -31,9 +25,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const childSelectionModal = document.getElementById('child-selection-modal');
     const childList = document.getElementById('child-list');
 
-    // --- FONCTIONS DE CONTRÔLE ---
+    // --- Render Function ---
+    function render() {
+        const currentChild = state.children.find(c => c.id === state.currentChildId);
 
-    const showChildSelectionModal = () => {
+        // Update global UI elements
+        childNameDisplay.textContent = `de ${currentChild.name}`;
+        controlsSection.classList.toggle('hidden', !state.isParentMode);
+        modeLabel.textContent = state.isParentMode ? 'Mode Parent' : 'Mode Enfant';
+        childNameSelector.classList.toggle('clickable', state.isParentMode);
+        
+        // Pass the board ID directly from the child object to the components
+        rewardBoard.setAttribute('board-id', currentChild.boardId);
+        rewardBoard.setAttribute('parent-mode', state.isParentMode);
+        addRenardBtn.setAttribute('board-id', currentChild.boardId);
+    }
+
+    // --- Event Handlers ---
+    function handleModeToggle() {
+        state.isParentMode = modeToggle.checked;
+        render();
+    }
+
+    function handleChildSelect(childId) {
+        state.currentChildId = childId;
+        childSelectionModal.classList.add('hidden');
+        render();
+    }
+
+    function openChildSelectionModal() {
+        if (!state.isParentMode) return;
+
         childList.innerHTML = '';
         state.children.forEach(child => {
             const childButton = document.createElement('button');
@@ -42,54 +64,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (child.id === state.currentChildId) {
                 childButton.classList.add('bg-amber-100', 'text-amber-700');
             }
-            childButton.onclick = () => {
-                state.currentChildId = child.id;
-                childSelectionModal.classList.add('hidden');
-                render();
-            };
+            childButton.onclick = () => handleChildSelect(child.id);
             childList.appendChild(childButton);
         });
         childSelectionModal.classList.remove('hidden');
-    };
+    }
 
-    const toggleMode = () => {
-        state.isParentMode = modeToggle.checked;
-        render();
-    };
-
-    const render = () => {
-        const child = state.children.find(c => c.id === state.currentChildId);
-        
-        // Mise à jour des éléments "globaux"
-        childNameDisplay.textContent = `de ${child.name}`;
-        controlsSection.classList.toggle('hidden', !state.isParentMode);
-        modeLabel.textContent = state.isParentMode ? 'Mode Parent' : 'Mode Enfant';
-        childNameSelector.classList.toggle('clickable', state.isParentMode);
-        
-        // On passe toutes les données nécessaires au composant principal
-        rewardBoard.data = { child, rewards };
-        rewardBoard.parentMode = state.isParentMode;
-    };
-
-    // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
-    addFoxBtn.addEventListener('click', () => {
-        rewardBoard.addRenard();
-    });
-    
-    modeToggle.addEventListener('change', toggleMode);
-    
-    childNameSelector.addEventListener('click', () => {
-        if (state.isParentMode) {
-            showChildSelectionModal();
-        }
-    });
-
+    // --- Initial Setup ---
+    modeToggle.addEventListener('change', handleModeToggle);
+    childNameSelector.addEventListener('click', openChildSelectionModal);
     childSelectionModal.addEventListener('click', (e) => {
         if (e.target === childSelectionModal) {
             childSelectionModal.classList.add('hidden');
         }
     });
 
-    // --- INITIALISATION ---
-    render();
+    render(); // Initial render
 });
