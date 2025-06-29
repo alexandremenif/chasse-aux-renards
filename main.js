@@ -17,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rewardBoard = document.getElementById('reward-board');
     const addRenardBtn = document.getElementById('add-renard-btn');
     const controlsSection = document.getElementById('controls');
-    const modeToggle = document.getElementById('mode-toggle');
-    const modeLabel = document.getElementById('mode-label');
+    const modeToggle = document.getElementById('mode-toggle'); // This is now our <toggle-switch>
     const childSelector = document.getElementById('child-selector');
 
     // --- Render Function ---
@@ -27,9 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update global UI elements that are not components
         controlsSection.classList.toggle('hidden', !state.isParentMode);
-        modeLabel.textContent = state.isParentMode ? 'Mode Parent' : 'Mode Enfant';
         
-        // Pass data and state to our components
+        // Update our new component's attributes/properties
+        modeToggle.setAttribute('label', state.isParentMode ? 'Mode Parent' : 'Mode Enfant');
+        if (state.isParentMode) {
+            modeToggle.setAttribute('checked', '');
+        } else {
+            modeToggle.removeAttribute('checked');
+        }
+
+        // Pass data and state to other components
         rewardBoard.setAttribute('board-id', currentChild.boardId);
         rewardBoard.setAttribute('parent-mode', state.isParentMode);
         addRenardBtn.setAttribute('board-id', currentChild.boardId);
@@ -42,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Handlers ---
-    function handleModeToggle() {
-        state.isParentMode = modeToggle.checked;
+    function handleModeToggle(e) {
+        // The checked status is now in the event's detail
+        state.isParentMode = e.detail.checked;
         render();
     }
 
@@ -53,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Initial Setup ---
+    // Listen to the custom 'change' event from our toggle-switch component
     modeToggle.addEventListener('change', handleModeToggle);
     childSelector.addEventListener('child-selected', handleChildSelect);
 

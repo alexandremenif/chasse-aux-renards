@@ -18,6 +18,7 @@
     <script type="module" src="components/reward-card.js"></script>
     <script type="module" src="components/reward-board.js"></script>
     <script type="module" src="components/child-selector.js"></script>
+    <script type="module" src="components/toggle-switch.js"></script> <!-- Import new component -->
     <script type="module" src="main.js"></script>
 </head>
 <body>
@@ -26,14 +27,7 @@
 
         <!-- Interrupteur de mode Parent/Enfant (temporaire) -->
         <div id="mode-toggle-container">
-            <label for="mode-toggle">
-                <div class="toggle-wrapper">
-                    <input type="checkbox" id="mode-toggle" class="sr-only">
-                    <div class="toggle-block"></div>
-                    <div class="toggle-dot"></div>
-                </div>
-                <div id="mode-label">Mode Enfant</div>
-            </label>
+            <toggle-switch id="mode-toggle"></toggle-switch>
         </div>
 
         <!-- En-tête de l'application -->
