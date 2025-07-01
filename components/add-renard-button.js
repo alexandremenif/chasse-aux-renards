@@ -1,24 +1,31 @@
 // components/add-renard-button.js
-import { rewardBoardService } from '../services/reward-board.js';
+import { userStore } from '../stores/user-store.js';
+import { rewardBoardStore } from '../stores/reward-board-store.js';
 
 class AddRenardButton extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-    }
-
-    static get observedAttributes() {
-        return ['board-id'];
+        this.unsubscribeUser = () => {};
     }
 
     connectedCallback() {
         this.render();
-        this.shadowRoot.querySelector('button').addEventListener('click', () => {
-            const boardId = this.getAttribute('board-id');
-            if (boardId) {
-                rewardBoardService.incrementToken(boardId);
-            }
+
+        // The button listens to the user store to manage its own visibility
+        this.style.display = 'none'; // Hidden by default
+        this.unsubscribeUser = userStore.onAuthenticatedUser(userData => {
+            this.style.display = userData.role === 'parent' ? 'block' : 'none';
         });
+
+        // The button now calls the store directly, no boardId needed
+        this.shadowRoot.querySelector('button').addEventListener('click', () => {
+            rewardBoardStore.addNewToken();
+        });
+    }
+
+    disconnectedCallback() {
+        this.unsubscribeUser();
     }
 
     render() {

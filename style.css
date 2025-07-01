@@ -5,18 +5,16 @@ body {
     color: #1E293B;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none; /* Standard syntax */
 }
 
-/* Styles pour le conteneur du bouton flottant (FAB) */
-#controls {
+/* Container for the user selector */
+#user-selection-container {
     position: fixed;
-    bottom: 3.5rem; /* Remonté pour une meilleure visibilité */
-    right: 2.5rem;
-    z-index: 50;
+    top: 1rem;
+    right: 1.5rem;
+    z-index: 100; /* Ensure it's above other elements */
 }
+
 
 #app {
     padding-bottom: 10rem; /* Marge de sécurité en bas */
@@ -39,43 +37,11 @@ body {
     }
 }
 
-/* Header & Title */
-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding-top: 3rem;
-}
-@media (min-width: 768px) {
-    header {
-        padding-top: 0;
-    }
-}
-header h1 {
-    font-size: 2.25rem; /* text-4xl */
-    font-weight: 900; /* font-black */
-    color: #D97706; /* text-amber-600 */
-    line-height: 1;
-    margin-top: 0;
-    margin-bottom: 0.5rem; /* Espace entre le titre et le sélecteur */
-}
-@media (min-width: 768px) {
-    header h1 {
-        font-size: 3rem; /* md:text-5xl */
-    }
-}
-
-/* Container for the new toggle-switch component */
-#mode-toggle-container {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 10;
-}
-@media (min-width: 768px) {
-    #mode-toggle-container {
-        top: 1.5rem;
-        right: 1.5rem;
-    }
+add-renard-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 50;
 }
 
 /* Screen-reader only utility */

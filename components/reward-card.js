@@ -1,18 +1,34 @@
 // components/reward-card.js
+import { userStore } from '../stores/user-store.js';
+import { rewardBoardStore } from '../stores/reward-board-store.js';
 
 class RewardCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.isParentMode = false;
+        this.unsubscribeUser = () => {};
     }
 
     connectedCallback() {
+        this.unsubscribeUser = userStore.onAuthenticatedUser(userData => {
+            const newIsParentMode = userData.role === 'parent';
+            if (this.isParentMode !== newIsParentMode) {
+                this.isParentMode = newIsParentMode;
+                this.render();
+                this._attachEventListeners();
+            }
+        });
         this.render();
         this._attachEventListeners();
     }
 
+    disconnectedCallback() {
+        this.unsubscribeUser();
+    }
+
     static get observedAttributes() {
-        return ['name', 'cost', 'icon', 'is-pending', 'can-afford', 'is-parent-mode'];
+        return ['id', 'name', 'cost', 'icon', 'is-pending', 'can-afford'];
     }
 
     attributeChangedCallback() {
@@ -26,9 +42,8 @@ class RewardCard extends HTMLElement {
         const icon = this.getAttribute('icon') || '';
         const isPending = this.getAttribute('is-pending') === 'true';
         const canAfford = this.getAttribute('can-afford') === 'true';
-        const isParentMode = this.getAttribute('is-parent-mode') === 'true';
+        const isParentMode = this.isParentMode;
 
-        // Logique de classe corrigée pour la carte
         let stateClass = '';
         if (isPending) {
             stateClass = 'card--pending';
@@ -73,11 +88,9 @@ class RewardCard extends HTMLElement {
                     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
                     transform: translateY(-4px);
                 }
-                /* La version "pending" est une variation de "affordable" */
                 .card--pending {
                     background-color: white;
                     cursor: pointer;
-                    /* Style du contour de sélection, qui écrase l'ombre par défaut */
                     box-shadow: 0 0 0 3px #FBBF24; /* amber-400 */
                     transform: translateY(-2px);
                 }
@@ -88,7 +101,7 @@ class RewardCard extends HTMLElement {
                 .name {
                     font-size: 1.125rem;
                     font-weight: 700;
-                    margin: 0; /* Correction du bug de marge */
+                    margin: 0;
                 }
                 .cost {
                     margin-top: 0.5rem;
@@ -143,17 +156,28 @@ class RewardCard extends HTMLElement {
     }
 
     _attachEventListeners() {
+        const rewardId = this.getAttribute('id');
+        if (!rewardId) return;
+
         const cardElement = this.shadowRoot.querySelector('.card');
+        const validateButton = this.shadowRoot.querySelector('.validate-btn');
+
         cardElement.addEventListener('click', (e) => {
             if (e.target.closest('.validate-btn')) return;
-            if (this.getAttribute('can-afford') === 'true' || this.getAttribute('is-pending') === 'true') {
-                this.dispatchEvent(new CustomEvent('toggle-pending'));
+
+            if (this.isParentMode) {
+                rewardBoardStore.toggleRewardSelection(rewardId);
             }
         });
 
-        const validateButton = this.shadowRoot.querySelector('.validate-btn');
         validateButton.addEventListener('click', () => {
-            this.dispatchEvent(new CustomEvent('validate-reward'));
+             const modal = document.getElementById('confirmation-modal');
+             modal.setAttribute('title', `Valider "${this.getAttribute('name')}" ?`);
+             modal.setAttribute('message', "Cette action marquera la récompense comme utilisée.");
+             modal.addEventListener('confirmed', () => {
+                rewardBoardStore.validateReward(rewardId);
+             }, { once: true });
+             modal.setAttribute('visible', 'true');
         });
     }
 }

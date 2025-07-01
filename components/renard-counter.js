@@ -1,4 +1,5 @@
 // components/renard-counter.js
+import { rewardBoardStore } from '../stores/reward-board-store.js';
 
 class RenardCounter extends HTMLElement {
     constructor() {
@@ -7,12 +8,21 @@ class RenardCounter extends HTMLElement {
         this.total = 0;
         this.previousTotal = 0;
         this.isFirstRender = true;
+        this.unsubscribeToken = () => {};
     }
 
     connectedCallback() {
         this.total = parseInt(this.getAttribute('total') || '0', 10);
         this.previousTotal = this.total;
         this.render();
+
+        this.unsubscribeToken = rewardBoardStore.onNewToken(() => {
+            this.#playAnimation(); // Call the private method
+        });
+    }
+
+    disconnectedCallback() {
+        this.unsubscribeToken();
     }
 
     static get observedAttributes() {
@@ -20,21 +30,15 @@ class RenardCounter extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        // This is the "State Manager". It just records the state change.
+        if (this.isFirstRender) return;
         this.previousTotal = parseInt(oldValue || '0', 10);
         this.total = parseInt(newValue || '0', 10);
         this.render();
     }
     
-    /**
-     * PUBLIC METHOD: The "Action Hero". It compares the last known state
-     * with the current state and triggers animations accordingly.
-     */
-    playAnimation() {
-        // We only animate if the total has increased.
-        if (this.total <= this.previousTotal) {
-            return;
-        }
+    // Method is now private
+    #playAnimation() {
+        if (this.total <= this.previousTotal) return;
 
         const oldCounts = this._calculateRenards(this.previousTotal);
         const newCounts = this._calculateRenards(this.total);
@@ -75,10 +79,10 @@ class RenardCounter extends HTMLElement {
     }
 
     render() {
-        // This is now a "pure" display function. It only draws what it's told.
-        const { gold, silver, normal } = this._calculateRenards(this.total);
+        // isFirstRender logic ensures this runs only after connectedCallback sets the initial total.
+        const total = this.isFirstRender ? this.total : parseInt(this.getAttribute('total') || '0', 10);
+        const { gold, silver, normal } = this._calculateRenards(total);
 
-        // Optimization: Create the full structure on the first render only.
         if (this.isFirstRender) {
             const goldHTML = this._createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
             const silverHTML = this._createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
