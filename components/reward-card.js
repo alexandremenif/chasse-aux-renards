@@ -165,9 +165,7 @@ class RewardCard extends HTMLElement {
         cardElement.addEventListener('click', (e) => {
             if (e.target.closest('.validate-btn')) return;
 
-            if (this.isParentMode) {
-                rewardBoardStore.toggleRewardSelection(rewardId);
-            }
+            rewardBoardStore.toggleRewardSelection(rewardId);
         });
 
         validateButton.addEventListener('click', () => {
