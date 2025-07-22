@@ -1,42 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>La Chasse aux Renards</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Component Imports -->
-    <script type="module" src="components/renard-icon.js"></script>
-    <script type="module" src="components/add-renard-button.js"></script>
-    <script type="module" src="components/renard-counter.js"></script>
-    <script type="module" src="components/confirmation-modal.js"></script>
-    <script type="module" src="components/reward-card.js"></script>
-    <script type="module" src="components/child-selector.js"></script>
-    <script type="module" src="components/child-selection-modal.js"></script>
-    <script type="module" src="components/user-selector.js"></script>
-    <script type="module" src="components/reward-board.js"></script>
-    
-</head>
-<body>
-
-    <!-- Main application container -->
-    <div id="app">
-        <reward-board></reward-board>
-    </div>
-
-    <!-- Global components -->
-    <add-renard-button></add-renard-button>
-    
-    <div id="user-selection-container">
-        <user-selector></user-selector>
-    </div>
-
-    <confirmation-modal id="confirmation-modal"></confirmation-modal>
-    <child-selection-modal></child-selection-modal>
-
-</body>
+  </head>
+  <body>
+    <renard-app></renard-app>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
