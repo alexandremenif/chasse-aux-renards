@@ -1,10 +1,27 @@
-/* Style de base pour l'application */
 body {
     font-family: 'Nunito', sans-serif;
     background-color: #F0F4F8;
     color: #1E293B;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    margin: 0; /* Reset default margin */
+}
+
+#app {
+    display: block; /* Custom elements are inline by default, make it a block container */
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1rem;
+    position: relative;
+    padding-bottom: 10rem; /* Marge de sécurité en bas */
+}
+
+@media (min-width: 768px) {
+    #app {
+        padding: 2rem;
+        padding-bottom: 10rem; /* Keep the bottom padding */
+    }
 }
 
 /* Container for the user selector */
@@ -13,28 +30,6 @@ body {
     top: 1rem;
     right: 1.5rem;
     z-index: 100; /* Ensure it's above other elements */
-}
-
-
-#app {
-    padding-bottom: 10rem; /* Marge de sécurité en bas */
-}
-
-
-/* --- Styles replacing Tailwind --- */
-
-/* Main App Container */
-#app {
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 1rem;
-    position: relative;
-}
-@media (min-width: 768px) {
-    #app {
-        padding: 2rem;
-    }
 }
 
 add-renard-button {

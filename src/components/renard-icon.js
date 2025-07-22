@@ -41,7 +41,7 @@ class RenardIcon extends HTMLElement {
         // Charger le SVG de base s'il n'est pas en cache.
         if (!iconCache.has('base')) {
             try {
-                const response = await fetch('assets/renard-token.svg');
+                const response = await fetch('/assets/renard-token.svg');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const svgText = await response.text();
                 iconCache.set('base', svgText);
