@@ -1,4 +1,3 @@
-/* Style de base pour l'application */
 body {
     font-family: 'Nunito', sans-serif;
     background-color: #F0F4F8;
@@ -8,8 +7,7 @@ body {
     margin: 0; /* Reset default margin */
 }
 
-/* Main App Container */
-renard-app {
+#app {
     display: block; /* Custom elements are inline by default, make it a block container */
     max-width: 960px;
     margin-left: auto;
@@ -20,7 +18,7 @@ renard-app {
 }
 
 @media (min-width: 768px) {
-    renard-app {
+    #app {
         padding: 2rem;
         padding-bottom: 10rem; /* Keep the bottom padding */
     }
