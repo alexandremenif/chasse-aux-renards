@@ -7,7 +7,7 @@ class ChildSelector extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.isParentMode = false;
         this.childId = null;
-        this.unsubscribeUser = () => {};
+        // this.unsubscribeUser can be removed as we no longer subscribe
     }
 
     static get observedAttributes() {
@@ -15,17 +15,12 @@ class ChildSelector extends HTMLElement {
     }
 
     connectedCallback() {
-        this.unsubscribeUser = userStore.onAuthenticatedUser(userData => {
-            this.isParentMode = userData.role === 'parent';
-            this.render();
-            this._attachEventListeners();
-        });
+        // Get the user data once, synchronously.
+        const userData = userStore.getCurrentUser();
+        this.isParentMode = userData.role === 'parent';
+        
         this.render();
         this._attachEventListeners();
-    }
-
-    disconnectedCallback() {
-        this.unsubscribeUser();
     }
 
     attributeChangedCallback(name, oldValue, newValue) {

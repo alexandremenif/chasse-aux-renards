@@ -1,21 +1,26 @@
 // components/reward-board.js
 import { rewardBoardStore } from '../stores/reward-board-store.js';
+import { userStore } from '../stores/user-store.js';
 
 class RewardBoard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        
         this.boardData = null;
         this.unsubscribeBoard = () => {};
     }
 
     connectedCallback() {
-        this._setupHTML();
+        const currentUser = userStore.getCurrentUser();
+        this._setupHTML(currentUser);
         
+        // Subscribe only to board updates, which happens when the selected child
+        // changes or a reward is claimed.
         this.unsubscribeBoard = rewardBoardStore.onCurrentBoardUpdated(boardData => {
-            this.boardData = boardData;
-            this._render();
+            if (boardData) {
+                this.boardData = boardData;
+                this._render();
+            }
         });
     }
 
@@ -23,7 +28,7 @@ class RewardBoard extends HTMLElement {
         this.unsubscribeBoard();
     }
 
-    _setupHTML() {
+    _setupHTML(user) {
         this.shadowRoot.innerHTML = `
             <style>
                 /* Header & Title */
@@ -79,7 +84,7 @@ class RewardBoard extends HTMLElement {
             
             <header>
                 <h1>La Chasse aux Renards</h1>
-                <child-selector></child-selector>
+                ${user.role === 'parent' ? '<child-selector></child-selector>' : ''}
             </header>
 
             <main>
@@ -98,25 +103,18 @@ class RewardBoard extends HTMLElement {
     }
 
     _render() {
-        const childSelector = this.shadowRoot.querySelector('child-selector');
-        const renardCounter = this.shadowRoot.querySelector('renard-counter');
-        const rewardsGrid = this.shadowRoot.querySelector('.rewards-grid');
-        
-        if (!this.boardData) {
-            rewardsGrid.innerHTML = '<p style="text-align: center;">Veuillez sélectionner un utilisateur.</p>';
-            renardCounter.setAttribute('total', '0');
-            childSelector.setAttribute('child-name', '...');
-            childSelector.removeAttribute('child-id');
-            return;
-        }
-
         const { owner, totalToken, rewards } = this.boardData;
         
-        childSelector.setAttribute('child-name', owner.name);
-        childSelector.setAttribute('child-id', owner.id);
+        const childSelector = this.shadowRoot.querySelector('child-selector');
+        if (childSelector) {
+            childSelector.setAttribute('child-name', owner.name);
+            childSelector.setAttribute('child-id', owner.id);
+        }
 
+        const renardCounter = this.shadowRoot.querySelector('renard-counter');
         renardCounter.setAttribute('total', String(totalToken));
         
+        const rewardsGrid = this.shadowRoot.querySelector('.rewards-grid');
         rewardsGrid.innerHTML = '';
         rewards.forEach(reward => {
             const rewardCard = document.createElement('reward-card');

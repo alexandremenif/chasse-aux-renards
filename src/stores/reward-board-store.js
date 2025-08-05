@@ -32,7 +32,9 @@ class RewardBoardStore {
     this.tokenSubscribers = [];
 
     userStore.onAuthenticatedUser(userData => {
-      if (userData.role === 'child') {
+      if (!userData) {
+        return;
+      } if (userData.role === 'child') {
         this.selectCurrentChild(userData.id);
       } else if (userData.role === 'parent' && userData.children.length > 0) {
         if (!this.currentChildId) {

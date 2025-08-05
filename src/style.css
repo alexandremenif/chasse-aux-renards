@@ -1,7 +1,21 @@
+:root {
+    --primary-color: #D97706; /* amber-600 */
+    --primary-color-hover: #B45309; /* amber-700 */
+    
+    --text-color-dark: #1E293B; /* slate-800 */
+    --text-color-light: #475569; /* slate-600 */
+    --text-color-on-primary: white;
+    
+    --border-color: #CBD5E1; /* slate-300 */
+    --border-color-light: #E5E7EB; /* slate-200 */
+    
+    --surface-background: white;
+}
+
 body {
     font-family: 'Nunito', sans-serif;
     background-color: #F0F4F8;
-    color: #1E293B;
+    color: var(--text-color-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0; /* Reset default margin */
@@ -24,9 +38,9 @@ body {
     }
 }
 
-/* Container for the user selector */
-#user-selection-container {
-    position: fixed;
+/* Positioning for the user-info component */
+user-info {
+    position: absolute;
     top: 1rem;
     right: 1.5rem;
     z-index: 100; /* Ensure it's above other elements */
