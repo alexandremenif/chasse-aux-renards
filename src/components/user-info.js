@@ -96,6 +96,7 @@ class UserInfo extends HTMLElement {
     `;
 
     this.togglePopup = this.togglePopup.bind(this);
+    this._handleOutsideClick = this._handleOutsideClick.bind(this);
   }
 
   connectedCallback() {
@@ -111,9 +112,29 @@ class UserInfo extends HTMLElement {
         authService.signOut();
     });
   }
+  
+  disconnectedCallback() {
+      // Clean up listener when the component is removed from the DOM
+      document.removeEventListener('click', this._handleOutsideClick);
+  }
 
   togglePopup() {
-    this.shadowRoot.querySelector('.popup').classList.toggle('show');
+    const popup = this.shadowRoot.querySelector('.popup');
+    const isVisible = popup.classList.toggle('show');
+
+    if (isVisible) {
+        document.addEventListener('click', this._handleOutsideClick);
+    } else {
+        document.removeEventListener('click', this._handleOutsideClick);
+    }
+  }
+
+  _handleOutsideClick(event) {
+      // If the click is not inside this component, close the popup.
+      // event.composedPath() is used to correctly traverse the Shadow DOM boundary.
+      if (!event.composedPath().includes(this)) {
+          this.togglePopup();
+      }
   }
 }
 
