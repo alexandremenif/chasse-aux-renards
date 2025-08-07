@@ -1,6 +1,6 @@
 // components/reward-board.js
-import { rewardBoardStore } from '../stores/reward-board-store.js';
-import { userStore } from '../stores/user-store.js';
+import { boardService } from '../services/board-service.js';
+import { userService } from '../services/user-service.js';
 
 class RewardBoard extends HTMLElement {
     constructor() {
@@ -11,12 +11,10 @@ class RewardBoard extends HTMLElement {
     }
 
     connectedCallback() {
-        const currentUser = userStore.getCurrentUser();
+        const currentUser = userService.getCurrentUser();
         this._setupHTML(currentUser);
         
-        // Subscribe only to board updates, which happens when the selected child
-        // changes or a reward is claimed.
-        this.unsubscribeBoard = rewardBoardStore.onCurrentBoardUpdated(boardData => {
+        this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
                 this.boardData = boardData;
                 this._render();
@@ -84,7 +82,7 @@ class RewardBoard extends HTMLElement {
             
             <header>
                 <h1>La Chasse aux Renards</h1>
-                ${user.role === 'parent' ? '<child-selector></child-selector>' : ''}
+                <div id="selector-container"></div>
             </header>
 
             <main>
@@ -100,15 +98,19 @@ class RewardBoard extends HTMLElement {
                 </div>
             </main>
         `;
+
+        if (user.isParent) {
+            this.shadowRoot.querySelector('#selector-container').innerHTML = '<board-selector></board-selector>';
+        }
     }
 
     _render() {
-        const { owner, totalToken, rewards } = this.boardData;
+        const { owner, totalToken, rewards, id } = this.boardData;
         
-        const childSelector = this.shadowRoot.querySelector('child-selector');
-        if (childSelector) {
-            childSelector.setAttribute('child-name', owner.name);
-            childSelector.setAttribute('child-id', owner.id);
+        const boardSelector = this.shadowRoot.querySelector('board-selector');
+        if (boardSelector) {
+            boardSelector.setAttribute('board-name', owner);
+            boardSelector.setAttribute('board-id', id);
         }
 
         const renardCounter = this.shadowRoot.querySelector('renard-counter');
@@ -116,7 +118,12 @@ class RewardBoard extends HTMLElement {
         
         const rewardsGrid = this.shadowRoot.querySelector('.rewards-grid');
         rewardsGrid.innerHTML = '';
-        rewards.forEach(reward => {
+        
+        const sortedRewards = Object.entries(rewards)
+            .map(([id, reward]) => ({ ...reward, id }))
+            .sort((a, b) => a.cost - b.cost);
+
+        sortedRewards.forEach(reward => {
             const rewardCard = document.createElement('reward-card');
             rewardCard.setAttribute('id', reward.id);
             rewardCard.setAttribute('name', reward.name);

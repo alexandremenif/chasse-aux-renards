@@ -1,31 +1,28 @@
-// components/child-selection-modal.js
-import { userStore } from '../stores/user-store.js';
-import { rewardBoardStore } from '../stores/reward-board-store.js';
+// components/board-selection-modal.js
+import { userService } from '../services/user-service.js';
+import { boardService } from '../services/board-service.js';
 
-class ChildSelectionModal extends HTMLElement {
+class BoardSelectionModal extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.userChildren = [];
-        this.selectedChildId = null;
-        this.unsubscribeUser = () => {};
+        this.userBoards = [];
+        this.selectedBoardId = null;
     }
 
     static get observedAttributes() {
-        return ['visible', 'selected-child-id'];
+        return ['visible', 'selected-board-id'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        console.log(name, oldValue, newValue)
         if (name === 'visible' && newValue !== null) {
             this.show();
         } else if (name === 'visible' && newValue === null) {
-            console.log("hide")
             this.hide();
         }
         
-        if (name === 'selected-child-id' && oldValue !== newValue) {
-            this.selectedChildId = newValue;
+        if (name === 'selected-board-id' && oldValue !== newValue) {
+            this.selectedBoardId = newValue;
         }
 
         this._render();
@@ -35,21 +32,12 @@ class ChildSelectionModal extends HTMLElement {
         this._render(); // Initial render (hidden)
     }
 
-    disconnectedCallback() {
-        this.unsubscribeUser();
-    }
-    
     show() {
-        // When shown, subscribe to the user store to get the list of children
-        this.unsubscribeUser = userStore.onAuthenticatedUser(userData => {
-            this.userChildren = userData.children || [];
-            this._render();
-        });
+        this.userBoards = userService.getCurrentUser().boards || [];
+        this._render();
     }
 
     hide() {
-        this.unsubscribeUser();
-        // The component removes its own 'visible' attribute to hide itself
         if (this.hasAttribute('visible')) {
             this.removeAttribute('visible');
         }
@@ -82,12 +70,12 @@ class ChildSelectionModal extends HTMLElement {
                     font-weight: 700;
                     margin: 0 0 1.5rem 0;
                 }
-                .child-list {
+                .board-list {
                     display: flex;
                     flex-direction: column;
                     gap: 1rem;
                 }
-                .child-button {
+                .board-button {
                     width: 100%;
                     text-align: left;
                     padding: 1rem;
@@ -98,10 +86,10 @@ class ChildSelectionModal extends HTMLElement {
                     cursor: pointer;
                     font-size: 1rem;
                 }
-                .child-button:hover {
+                .board-button:hover {
                     background-color: #F1F5F9;
                 }
-                .child-button.selected {
+                .board-button.selected {
                     background-color: #FEF3C7;
                     color: #B45309;
                 }
@@ -109,11 +97,11 @@ class ChildSelectionModal extends HTMLElement {
             
             <div class="modal">
                 <div class="modal-content">
-                    <h3 class="modal-title">Changer de profil</h3>
-                    <div class="child-list">
-                        ${this.userChildren.map(child => `
-                            <button class="child-button ${child.id === this.selectedChildId ? 'selected' : ''}" data-id="${child.id}">
-                                ${child.name}
+                    <h3 class="modal-title">Changer de tableau</h3>
+                    <div class="board-list">
+                        ${this.userBoards.map(board => `
+                            <button class="board-button ${board.id === this.selectedBoardId ? 'selected' : ''}" data-id="${board.id}">
+                                ${board.owner}
                             </button>
                         `).join('')}
                     </div>
@@ -133,14 +121,14 @@ class ChildSelectionModal extends HTMLElement {
             });
         }
 
-        this.shadowRoot.querySelectorAll('.child-button').forEach(button => {
+        this.shadowRoot.querySelectorAll('.board-button').forEach(button => {
             button.addEventListener('click', (e) => {
-                const childId = e.currentTarget.dataset.id;
-                rewardBoardStore.selectCurrentChild(childId);
-                this.hide(); // Hide after selection
+                const boardId = e.currentTarget.dataset.id;
+                boardService.selectCurrentBoard(boardId);
+                this.hide();
             });
         });
     }
 }
 
-customElements.define('child-selection-modal', ChildSelectionModal);
+customElements.define('board-selection-modal', BoardSelectionModal);

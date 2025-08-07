@@ -1,39 +1,36 @@
-// components/child-selector.js
-import { userStore } from '../stores/user-store.js';
+// components/board-selector.js
+import { userService } from '../services/user-service.js';
 
-class ChildSelector extends HTMLElement {
+class BoardSelector extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.isParentMode = false;
-        this.childId = null;
-        // this.unsubscribeUser can be removed as we no longer subscribe
+        this.isParent = false;
+        this.boardId = null;
     }
 
     static get observedAttributes() {
-        return ['child-name', 'child-id'];
+        return ['board-name', 'board-id'];
     }
 
     connectedCallback() {
-        // Get the user data once, synchronously.
-        const userData = userStore.getCurrentUser();
-        this.isParentMode = userData.role === 'parent';
+        this.isParent = userService.getCurrentUser().isParent;
         
         this.render();
         this._attachEventListeners();
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'child-id') {
-            this.childId = newValue;
+        if (name === 'board-id') {
+            this.boardId = newValue;
         }
         this.render();
         this._attachEventListeners();
     }
 
     render() {
-        const childName = this.getAttribute('child-name') || '...';
-        const displayName = `de ${childName}`;
+        const boardName = this.getAttribute('board-name') || '...';
+        const displayName = `${boardName}`;
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -61,11 +58,11 @@ class ChildSelector extends HTMLElement {
                     height: 1rem;
                     stroke-width: 3;
                     stroke: currentColor;
-                    display: ${this.isParentMode ? 'inline-block' : 'none'};
+                    display: ${this.isParent ? 'inline-block' : 'none'};
                 }
             </style>
 
-            <div class="selector-display ${this.isParentMode ? 'clickable' : ''}">
+            <div class="selector-display ${this.isParent ? 'clickable' : ''}">
                 <p class="display-name">${displayName}</p>
                 <svg class="arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -75,11 +72,11 @@ class ChildSelector extends HTMLElement {
     }
 
     _attachEventListeners() {
-        if (this.isParentMode) {
+        if (this.isParent) {
             this.shadowRoot.querySelector('.selector-display').addEventListener('click', () => {
-                const modal = document.querySelector('child-selection-modal');
+                const modal = document.querySelector('board-selection-modal');
                 if (modal) {
-                    modal.setAttribute('selected-child-id', this.childId);
+                    modal.setAttribute('selected-board-id', this.boardId);
                     modal.setAttribute('visible', 'true');
                 }
             });
@@ -87,4 +84,4 @@ class ChildSelector extends HTMLElement {
     }
 }
 
-customElements.define('child-selector', ChildSelector);
+customElements.define('board-selector', BoardSelector);

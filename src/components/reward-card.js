@@ -1,30 +1,18 @@
 // components/reward-card.js
-import { userStore } from '../stores/user-store.js';
-import { rewardBoardStore } from '../stores/reward-board-store.js';
+import { userService } from '../services/user-service.js';
+import { boardService } from '../services/board-service.js';
 
 class RewardCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.isParentMode = false;
-        this.unsubscribeUser = () => {};
+        this.isParent = false;
     }
 
     connectedCallback() {
-        this.unsubscribeUser = userStore.onAuthenticatedUser(userData => {
-            const newIsParentMode = userData.role === 'parent';
-            if (this.isParentMode !== newIsParentMode) {
-                this.isParentMode = newIsParentMode;
-                this.render();
-                this._attachEventListeners();
-            }
-        });
+        this.isParent = userService.getCurrentUser().isParent;
         this.render();
         this._attachEventListeners();
-    }
-
-    disconnectedCallback() {
-        this.unsubscribeUser();
     }
 
     static get observedAttributes() {
@@ -42,7 +30,7 @@ class RewardCard extends HTMLElement {
         const icon = this.getAttribute('icon') || '';
         const isPending = this.getAttribute('is-pending') === 'true';
         const canAfford = this.getAttribute('can-afford') === 'true';
-        const isParentMode = this.isParentMode;
+        const isParent = this.isParent;
 
         let stateClass = '';
         if (isPending) {
@@ -142,7 +130,7 @@ class RewardCard extends HTMLElement {
             </style>
             
             <div class="card ${stateClass}">
-                <button class="validate-btn ${isPending && isParentMode ? 'validate-btn--visible' : ''}">
+                <button class="validate-btn ${isPending && isParent ? 'validate-btn--visible' : ''}">
                     ✔
                 </button>
                 <div class="icon">${icon}</div>
@@ -165,7 +153,7 @@ class RewardCard extends HTMLElement {
         cardElement.addEventListener('click', (e) => {
             if (e.target.closest('.validate-btn')) return;
 
-            rewardBoardStore.toggleRewardSelection(rewardId);
+            boardService.toggleRewardSelection(rewardId);
         });
 
         validateButton.addEventListener('click', () => {
@@ -173,7 +161,7 @@ class RewardCard extends HTMLElement {
              modal.setAttribute('title', `Valider "${this.getAttribute('name')}" ?`);
              modal.setAttribute('message', "Cette action marquera la récompense comme utilisée.");
              modal.addEventListener('confirmed', () => {
-                rewardBoardStore.validateReward(rewardId);
+                boardService.validateReward(rewardId);
              }, { once: true });
              modal.setAttribute('visible', 'true');
         });

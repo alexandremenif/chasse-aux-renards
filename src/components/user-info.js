@@ -1,5 +1,5 @@
 // src/components/user-info.js
-import { authService } from '../services/auth-service';
+import { userService } from '../services/user-service';
 
 class UserInfo extends HTMLElement {
   constructor() {
@@ -100,7 +100,7 @@ class UserInfo extends HTMLElement {
   }
 
   connectedCallback() {
-    const user = authService.getUser();
+    const user = userService.getCurrentUser();
 
     this.shadowRoot.querySelector('.avatar').src = user.photoURL || '';
     this.shadowRoot.querySelector('.popup-avatar').src = user.photoURL || '';
@@ -109,12 +109,11 @@ class UserInfo extends HTMLElement {
 
     this.shadowRoot.querySelector('.avatar').addEventListener('click', this.togglePopup);
     this.shadowRoot.querySelector('.btn-secondary').addEventListener('click', () => {
-        authService.signOut();
+        userService.signOut();
     });
   }
   
   disconnectedCallback() {
-      // Clean up listener when the component is removed from the DOM
       document.removeEventListener('click', this._handleOutsideClick);
   }
 
@@ -130,8 +129,6 @@ class UserInfo extends HTMLElement {
   }
 
   _handleOutsideClick(event) {
-      // If the click is not inside this component, close the popup.
-      // event.composedPath() is used to correctly traverse the Shadow DOM boundary.
       if (!event.composedPath().includes(this)) {
           this.togglePopup();
       }

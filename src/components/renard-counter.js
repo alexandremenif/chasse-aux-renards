@@ -1,5 +1,5 @@
 // components/renard-counter.js
-import { rewardBoardStore } from '../stores/reward-board-store.js';
+import { boardService } from '../services/board-service'
 
 class RenardCounter extends HTMLElement {
     constructor() {
@@ -16,7 +16,7 @@ class RenardCounter extends HTMLElement {
         this.previousTotal = this.total;
         this.render();
 
-        this.unsubscribeToken = rewardBoardStore.onNewToken(() => {
+        this.unsubscribeToken = boardService.onNewToken(() => {
             this.#playAnimation(); // Call the private method
         });
     }

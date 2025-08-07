@@ -1,5 +1,5 @@
 // src/components/login-page.js
-import { authService } from '../services/auth-service';
+import { userService } from '../services/user-service';
 
 class LoginPage extends HTMLElement {
   constructor() {
@@ -62,7 +62,7 @@ class LoginPage extends HTMLElement {
 
   connectedCallback() {
     this.shadowRoot.querySelector('button').addEventListener('click', () => {
-      authService.signInWithGoogle();
+      userService.signIn();
     });
   }
 }
