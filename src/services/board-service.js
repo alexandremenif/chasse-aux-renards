@@ -25,15 +25,23 @@ const boards = {
   },
 };
 
+const LAST_SELECTED_BOARD_KEY = 'lastSelectedBoardId';
+
 class BoardService {
   constructor() {
     this.currentBoardId = null;
     this.boardSubscribers = [];
     this.tokenSubscribers = [];
 
+    const lastSelectedId = localStorage.getItem(LAST_SELECTED_BOARD_KEY);
+
     userService.onUserChanged(user => {
       if (user && user.boards.length > 0) {
-        if (!this.currentBoardId || !user.boards.find(b => b.id === this.currentBoardId)) {
+        const isValidLastSelected = user.boards.some(b => b.id === lastSelectedId);
+
+        if (isValidLastSelected) {
+          this.selectCurrentBoard(lastSelectedId);
+        } else {
           this.selectCurrentBoard(user.boards[0].id);
         }
       } else {
@@ -65,6 +73,7 @@ class BoardService {
   selectCurrentBoard(boardId) {
     if (boardId && boards[boardId] && boardId !== this.currentBoardId) {
       this.currentBoardId = boardId;
+      localStorage.setItem(LAST_SELECTED_BOARD_KEY, boardId);
       this.#notifyBoardSubscribers();
     }
   }
