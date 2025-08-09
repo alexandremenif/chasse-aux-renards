@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "firebase-admin": "^13.4.0",
     "vite": "^7.0.4"
   },
   "dependencies": {
