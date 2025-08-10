@@ -13,11 +13,16 @@ class UserService {
     this.#loading = getRedirectResult(auth).catch(error => console.error("Redirect Result Error:", error));
 
     onAuthStateChanged(auth, async (firebaseUser) => {
+
+      console.log(firebaseUser)
+
       await this.#loading;
 
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
+
+        console.log(userDoc)
 
         if (userDoc.exists()) {
           const userData = userDoc.data();

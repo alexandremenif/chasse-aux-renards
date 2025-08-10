@@ -1,6 +1,9 @@
 import './firebase.js'; // Import and execute Firebase initialization
 import './style.css';
 
+// This special import will register the service worker.
+import 'virtual:pwa-register'; 
+
 // Import all the components so they are registered
 import './components/renard-icon.js';
 import './components/add-renard-button.js';
@@ -22,7 +25,7 @@ userService.onUserChanged(user => {
     app.innerHTML = `
       <user-info></user-info>
       <reward-board></reward-board>
-      <add-renard-button></add-renard-button>
+      <add-renard-button id="add-renard-btn"></add-renard-button>
       <confirmation-modal id="confirmation-modal"></confirmation-modal>
       <board-selection-modal></board-selection-modal>
     `;

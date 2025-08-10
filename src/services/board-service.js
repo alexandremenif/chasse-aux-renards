@@ -50,8 +50,6 @@ class BoardService {
   #handleBoardUpdate(boardData) {
     const remoteTimestamp = boardData.lastTokenUpdateTime?.toMillis();
 
-    this.#notifyBoardSubscribers(boardData);
-
     // Only notify subscribers if we have a previous timestamp and the new one is different.
     // This prevents the animation from firing on the initial load of a board.
     if (this.localLastTokenUpdateTime && remoteTimestamp !== this.localLastTokenUpdateTime) {
@@ -60,6 +58,7 @@ class BoardService {
     
     // Always update to the latest known timestamp from the server.
     this.localLastTokenUpdateTime = remoteTimestamp;
+    this.#notifyBoardSubscribers(boardData);
   }
 
   async addNewToken() {
