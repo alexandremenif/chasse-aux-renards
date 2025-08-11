@@ -4,10 +4,15 @@ import { getAuth } from "firebase/auth";
 // Reverting to the previous, stable way of initializing Firestore
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
+// For signInWitHRedirect, we must use the domain where the application is currently hosted
+const authDomain = window.location.hostname;
+
+console.log('authDomain:', authDomain)
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyC-skTKkoruH3pPYwutjHMbOKTXkfN0BPs",
-  authDomain: "la-chasse-aux-renards.firebaseapp.com",
+  authDomain,
   projectId: "la-chasse-aux-renards",
   storageBucket: "la-chasse-aux-renards.appspot.com",
   messagingSenderId: "88287211693",
