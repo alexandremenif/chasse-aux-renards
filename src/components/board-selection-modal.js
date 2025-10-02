@@ -8,43 +8,27 @@ class BoardSelectionModal extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.userBoards = [];
         this.selectedBoardId = null;
-    }
-
-    static get observedAttributes() {
-        return ['visible', 'selected-board-id'];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'visible' && newValue !== null) {
-            this.show();
-        } else if (name === 'visible' && newValue === null) {
-            this.hide();
-        }
-        
-        if (name === 'selected-board-id' && oldValue !== newValue) {
-            this.selectedBoardId = newValue;
-        }
-
-        this._render();
+        this.isVisible = false;
     }
 
     connectedCallback() {
         this._render(); // Initial render (hidden)
     }
 
-    show() {
+    open(boardId) {
+        this.selectedBoardId = boardId;
+        this.isVisible = true;
         this.userBoards = userService.getCurrentUser().boards || [];
         this._render();
     }
 
     hide() {
-        if (this.hasAttribute('visible')) {
-            this.removeAttribute('visible');
-        }
+        this.isVisible = false;
+        this._render();
     }
 
     _render() {
-        const isVisible = this.hasAttribute('visible');
+        const isVisible = this.isVisible;
         this.shadowRoot.innerHTML = `
             <style>
                 .modal {

@@ -1,6 +1,5 @@
 // components/reward-board.js
 import { boardService } from '../services/board-service.js';
-import { userService } from '../services/user-service.js';
 
 class RewardBoard extends HTMLElement {
     constructor() {
@@ -11,8 +10,7 @@ class RewardBoard extends HTMLElement {
     }
 
     connectedCallback() {
-        const currentUser = userService.getCurrentUser();
-        this._setupHTML(currentUser);
+        this._setupHTML();
         
         this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
@@ -26,33 +24,9 @@ class RewardBoard extends HTMLElement {
         this.unsubscribeBoard();
     }
 
-    _setupHTML(user) {
+    _setupHTML() {
         this.shadowRoot.innerHTML = `
             <style>
-                /* Header & Title */
-                header {
-                    text-align: center;
-                    margin-bottom: 2rem;
-                    padding-top: 3rem;
-                }
-                @media (min-width: 768px) {
-                    header {
-                        padding-top: 0;
-                    }
-                }
-                header h1 {
-                    font-size: 2.25rem; /* text-4xl */
-                    font-weight: 900; /* font-black */
-                    color: #D97706; /* text-amber-600 */
-                    line-height: 1;
-                    margin-top: 0;
-                    margin-bottom: 0.5rem; /* Espace entre le titre et le sélecteur */
-                }
-                @media (min-width: 768px) {
-                    header h1 {
-                        font-size: 3rem; /* md:text-5xl */
-                    }
-                }
                 main {
                     padding: 2rem;
                 }
@@ -79,11 +53,6 @@ class RewardBoard extends HTMLElement {
                     gap: 1rem; 
                 }
             </style>
-            
-            <header>
-                <h1>La Chasse aux Renards</h1>
-                <div id="selector-container"></div>
-            </header>
 
             <main>
                 <div class="dashboard-grid">
@@ -98,20 +67,10 @@ class RewardBoard extends HTMLElement {
                 </div>
             </main>
         `;
-
-        if (user.isParent) {
-            this.shadowRoot.querySelector('#selector-container').innerHTML = '<board-selector></board-selector>';
-        }
     }
 
     _render() {
-        const { owner, totalToken, rewards, id } = this.boardData;
-        
-        const boardSelector = this.shadowRoot.querySelector('board-selector');
-        if (boardSelector) {
-            boardSelector.setAttribute('board-name', owner);
-            boardSelector.setAttribute('board-id', id);
-        }
+        const { totalToken, rewards } = this.boardData;
 
         const renardCounter = this.shadowRoot.querySelector('renard-counter');
         renardCounter.setAttribute('total', String(totalToken));

@@ -1,5 +1,6 @@
 // components/board-selector.js
 import { userService } from '../services/user-service.js';
+import { boardSelectionService } from '../services/board-selection-service.js';
 
 class BoardSelector extends HTMLElement {
     constructor() {
@@ -74,11 +75,7 @@ class BoardSelector extends HTMLElement {
     _attachEventListeners() {
         if (this.isParent) {
             this.shadowRoot.querySelector('.selector-display').addEventListener('click', () => {
-                const modal = document.querySelector('board-selection-modal');
-                if (modal) {
-                    modal.setAttribute('selected-board-id', this.boardId);
-                    modal.setAttribute('visible', 'true');
-                }
+                boardSelectionService.openModal(this.boardId);
             });
         }
     }

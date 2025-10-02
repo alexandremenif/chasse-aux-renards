@@ -15,21 +15,12 @@ import './components/board-selection-modal.js';
 import './components/user-info.js';
 import './components/reward-board.js';
 import './components/login-page.js';
+import './components/renard-app.js';
+import './components/app-bar.js';
 
-import { userService } from './services/user-service.js';
+// Import services to ensure they are initialized
+import './services/confirmation-service.js';
+import './services/board-selection-service.js';
 
 const app = document.querySelector('#app');
-
-userService.onUserChanged(user => {
-  if (user) {
-    app.innerHTML = `
-      <user-info></user-info>
-      <reward-board></reward-board>
-      <add-renard-button id="add-renard-btn"></add-renard-button>
-      <confirmation-modal id="confirmation-modal"></confirmation-modal>
-      <board-selection-modal></board-selection-modal>
-    `;
-  } else {
-    app.innerHTML = `<login-page></login-page>`;
-  }
-});
+app.innerHTML = `<renard-app></renard-app>`;

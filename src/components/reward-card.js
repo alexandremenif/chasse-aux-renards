@@ -1,6 +1,7 @@
 // components/reward-card.js
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
+import { confirmationService } from '../services/confirmation-service.js';
 
 class RewardCard extends HTMLElement {
     constructor() {
@@ -156,14 +157,15 @@ class RewardCard extends HTMLElement {
             boardService.toggleRewardSelection(rewardId);
         });
 
-        validateButton.addEventListener('click', () => {
-             const modal = document.getElementById('confirmation-modal');
-             modal.setAttribute('title', `Valider "${this.getAttribute('name')}" ?`);
-             modal.setAttribute('message', "Cette action marquera la récompense comme utilisée.");
-             modal.addEventListener('confirmed', () => {
+        validateButton.addEventListener('click', async () => {
+            const confirmed = await confirmationService.getConfirmation({
+                title: `Valider "${this.getAttribute('name')}" ?`,
+                message: "Cette action marquera la récompense comme utilisée."
+            });
+
+            if (confirmed) {
                 boardService.validateReward(rewardId);
-             }, { once: true });
-             modal.setAttribute('visible', 'true');
+            }
         });
     }
 }
