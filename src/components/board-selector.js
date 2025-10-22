@@ -63,7 +63,7 @@ class BoardSelector extends HTMLElement {
             </style>
 
             <div class="selector-display ${this.isParent ? 'clickable' : ''}">
-                <p class="display-name">${displayName}</p>
+                <span class="display-name">${displayName}</span>
                 <svg class="arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>

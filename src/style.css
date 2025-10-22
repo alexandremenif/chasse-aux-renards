@@ -23,27 +23,6 @@ body {
 
 #app {
     display: block; /* Custom elements are inline by default, make it a block container */
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 1rem;
-    position: relative;
-    padding-bottom: 10rem; /* Marge de sécurité en bas */
-}
-
-@media (min-width: 768px) {
-    #app {
-        padding: 2rem;
-        padding-bottom: 10rem; /* Keep the bottom padding */
-    }
-}
-
-/* Positioning for the user-info component */
-user-info {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    z-index: 100; /* Ensure it's above other elements */
 }
 
 add-renard-button {

@@ -1,6 +1,5 @@
 // components/reward-board.js
 import { boardService } from '../services/board-service.js';
-import { userService } from '../services/user-service.js';
 
 class RewardBoard extends HTMLElement {
     constructor() {
@@ -11,8 +10,7 @@ class RewardBoard extends HTMLElement {
     }
 
     connectedCallback() {
-        const currentUser = userService.getCurrentUser();
-        this._setupHTML(currentUser);
+        this._setupHTML();
         
         this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
@@ -26,35 +24,26 @@ class RewardBoard extends HTMLElement {
         this.unsubscribeBoard();
     }
 
-    _setupHTML(user) {
+    _setupHTML() {
         this.shadowRoot.innerHTML = `
             <style>
-                /* Header & Title */
-                header {
-                    text-align: center;
-                    margin-bottom: 2rem;
-                    padding-top: 3rem;
+                :host {
+                    display: block;
+                    max-width: 960px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    padding: 1rem;
+                    position: relative;
+                    padding-bottom: 10rem; /* Marge de sécurité en bas */
                 }
                 @media (min-width: 768px) {
-                    header {
-                        padding-top: 0;
-                    }
-                }
-                header h1 {
-                    font-size: 2.25rem; /* text-4xl */
-                    font-weight: 900; /* font-black */
-                    color: #D97706; /* text-amber-600 */
-                    line-height: 1;
-                    margin-top: 0;
-                    margin-bottom: 0.5rem; /* Espace entre le titre et le sélecteur */
-                }
-                @media (min-width: 768px) {
-                    header h1 {
-                        font-size: 3rem; /* md:text-5xl */
+                    :host {
+                        padding: 2rem;
+                        padding-bottom: 10rem; /* Keep the bottom padding */
                     }
                 }
                 main {
-                    padding: 2rem;
+                    /* padding is now on the host */
                 }
                 .dashboard-grid { 
                     display: grid; 
@@ -80,11 +69,6 @@ class RewardBoard extends HTMLElement {
                 }
             </style>
             
-            <header>
-                <h1>La Chasse aux Renards</h1>
-                <div id="selector-container"></div>
-            </header>
-
             <main>
                 <div class="dashboard-grid">
                     <section class="section">
@@ -98,41 +82,35 @@ class RewardBoard extends HTMLElement {
                 </div>
             </main>
         `;
-
-        if (user.isParent) {
-            this.shadowRoot.querySelector('#selector-container').innerHTML = '<board-selector></board-selector>';
-        }
     }
 
     _render() {
-        const { owner, totalToken, rewards, id } = this.boardData;
-        
-        const boardSelector = this.shadowRoot.querySelector('board-selector');
-        if (boardSelector) {
-            boardSelector.setAttribute('board-name', owner);
-            boardSelector.setAttribute('board-id', id);
-        }
+        if (!this.boardData) return;
 
+        const { totalToken, rewards } = this.boardData;
+        
         const renardCounter = this.shadowRoot.querySelector('renard-counter');
         renardCounter.setAttribute('total', String(totalToken));
         
         const rewardsGrid = this.shadowRoot.querySelector('.rewards-grid');
         rewardsGrid.innerHTML = '';
         
-        const sortedRewards = Object.entries(rewards)
-            .map(([id, reward]) => ({ ...reward, id }))
-            .sort((a, b) => a.cost - b.cost);
+        if (rewards) {
+            const sortedRewards = Object.entries(rewards)
+                .map(([id, reward]) => ({ ...reward, id }))
+                .sort((a, b) => a.cost - b.cost);
 
-        sortedRewards.forEach(reward => {
-            const rewardCard = document.createElement('reward-card');
-            rewardCard.setAttribute('id', reward.id);
-            rewardCard.setAttribute('name', reward.name);
-            rewardCard.setAttribute('cost', reward.cost);
-            rewardCard.setAttribute('icon', reward.icon);
-            rewardCard.setAttribute('is-pending', String(reward.pending));
-            rewardCard.setAttribute('can-afford', String(totalToken >= reward.cost || reward.pending));
-            rewardsGrid.appendChild(rewardCard);
-        });
+            sortedRewards.forEach(reward => {
+                const rewardCard = document.createElement('reward-card');
+                rewardCard.setAttribute('id', reward.id);
+                rewardCard.setAttribute('name', reward.name);
+                rewardCard.setAttribute('cost', reward.cost);
+                rewardCard.setAttribute('icon', reward.icon);
+                rewardCard.setAttribute('is-pending', String(reward.pending));
+                rewardCard.setAttribute('can-afford', String(totalToken >= reward.cost || reward.pending));
+                rewardsGrid.appendChild(rewardCard);
+            });
+        }
     }
 }
 
