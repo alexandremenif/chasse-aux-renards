@@ -31,17 +31,20 @@ class AddRenardButton extends HTMLElement {
                     width: ${size};
                     height: ${size};
                     border-radius: 9999px;
-                    background-color: #F97316;
+                    background-color: var(--primary-color);
                     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
                     border: none;
                     cursor: pointer;
                     padding: 0;
-                    transition: all 0.2s ease-out;
+                    transition: transform 0.1s ease-out;
+                    outline: none;
                 }
 
-                button:hover {
-                    background-color: #EA580C;
-                    transform: scale(1.05);
+                button:active {
+                    transform: scale(0.95);
+                }
+                button:focus-visible {
+                    box-shadow: 0 0 0 4px;
                 }
             </style>
             
