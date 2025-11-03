@@ -1,6 +1,7 @@
 // components/reward-card.js
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
+import './renard-icon.js';
 
 class RewardCard extends HTMLElement {
     constructor() {
@@ -157,13 +158,15 @@ class RewardCard extends HTMLElement {
         });
 
         validateButton.addEventListener('click', () => {
-             const modal = document.getElementById('confirmation-modal');
-             modal.setAttribute('title', `Valider "${this.getAttribute('name')}" ?`);
-             modal.setAttribute('message', "Cette action marquera la récompense comme utilisée.");
-             modal.addEventListener('confirmed', () => {
-                boardService.validateReward(rewardId);
-             }, { once: true });
-             modal.setAttribute('visible', 'true');
+            this.dispatchEvent(new CustomEvent('show-confirmation-modal', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    title: `Valider "${this.getAttribute('name')}" ?`,
+                    message: "Cette action marquera la récompense comme utilisée.",
+                    onConfirm: () => boardService.validateReward(rewardId)
+                }
+            }));
         });
     }
 }

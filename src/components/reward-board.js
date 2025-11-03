@@ -1,5 +1,7 @@
 // components/reward-board.js
 import { boardService } from '../services/board-service.js';
+import './renard-counter.js';
+import './reward-card.js';
 
 class RewardBoard extends HTMLElement {
     constructor() {

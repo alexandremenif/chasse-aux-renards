@@ -74,11 +74,11 @@ class BoardSelector extends HTMLElement {
     _attachEventListeners() {
         if (this.isParent) {
             this.shadowRoot.querySelector('.selector-display').addEventListener('click', () => {
-                const modal = document.querySelector('board-selection-modal');
-                if (modal) {
-                    modal.setAttribute('selected-board-id', this.boardId);
-                    modal.setAttribute('visible', 'true');
-                }
+                this.dispatchEvent(new CustomEvent('show-board-selection-modal', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { boardId: this.boardId }
+                }));
             });
         }
     }
