@@ -66,7 +66,7 @@ class RenardCounter extends HTMLElement {
 
     _createCounterBlockHTML(id, label, count, iconType, colors) {
         return `
-            <div id="${id}" class="counter-block" style="background-color: ${colors.bg}; border-color: ${colors.border};">
+            <div id="${id}" class="counter-block" title="${label}" style="background-color: ${colors.bg}; border-color: ${colors.border};">
                 <h3 class="counter-label" style="color: ${colors.text};">
                     ${label}
                 </h3>
@@ -91,7 +91,12 @@ class RenardCounter extends HTMLElement {
             this.shadowRoot.innerHTML = `
                 <style>
                     :host { font-family: inherit; }
-                    .counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; }
+                    .counter-grid { 
+                        display: grid; 
+                        grid-template-columns: repeat(3, 1fr); 
+                        gap: 1rem; 
+                        text-align: center; 
+                    }
                     .counter-block { padding: 1rem; border-radius: 0.75rem; border-width: 2px; }
                     .counter-label { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
                     .counter-display { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
@@ -101,6 +106,15 @@ class RenardCounter extends HTMLElement {
                         0% { transform: scale(1); }
                         50% { transform: scale(1.25); color: #F97316; }
                         100% { transform: scale(1); }
+                    }
+
+                    @media (max-width: 640px) {
+                        .counter-label {
+                            display: none;
+                        }
+                        .counter-display {
+                            flex-direction: column;
+                        }
                     }
                 </style>
                 <div class="counter-grid">
