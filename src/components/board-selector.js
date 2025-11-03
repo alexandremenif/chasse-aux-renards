@@ -39,7 +39,6 @@ class BoardSelector extends HTMLElement {
                     display: inline-flex;
                     align-items: center;
                     gap: 0.5rem;
-                    padding: 0.5rem;
                     border-radius: 0.5rem;
                     transition: color 0.2s ease-in-out;
                 }
@@ -52,6 +51,7 @@ class BoardSelector extends HTMLElement {
                 .display-name {
                     font-size: 1.25rem;
                     color: #64748B; /* slate-500 */
+                    margin: 0; /* Ensure no default margin */
                 }
                 .arrow {
                     width: 1rem;
@@ -63,7 +63,7 @@ class BoardSelector extends HTMLElement {
             </style>
 
             <div class="selector-display ${this.isParent ? 'clickable' : ''}">
-                <span class="display-name">${displayName}</span>
+                <div class="display-name">${displayName}</div>
                 <svg class="arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>

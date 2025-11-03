@@ -40,38 +40,49 @@ class AppBar extends HTMLElement {
                     box-sizing: border-box;
                 }
                 header {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: 1fr auto 1fr;
                     align-items: center;
-                    justify-content: space-between;
+                    gap: 1rem; /* Add some space between columns */
                 }
-                .title-container, .user-info-container, .board-selector-container {
-                    flex: 1;
-                }
-                .title-container {
+                
+                .center-content {
+                    grid-column: 2;
                     display: flex;
-                    justify-content: flex-start;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
                 }
-                .board-selector-container {
-                    display: flex;
-                    justify-content: center;
-                }
+
                 .user-info-container {
-                    display: flex;
-                    justify-content: flex-end;
+                    grid-column: 3;
+                    justify-self: end;
                 }
+
                 h1 {
                     font-size: 1.5rem;
                     font-weight: 900;
                     color: #D97706; /* text-amber-600 */
                     margin: 0;
                     white-space: nowrap;
+                    text-align: center;
+                }
+
+                /* On smaller screens, we can adjust the title size if needed */
+                @media (max-width: 768px) {
+                    h1 {
+                        font-size: 1.25rem;
+                    }
+                    header {
+                        gap: 0.5rem;
+                    }
                 }
             </style>
             <header>
-                <div class="title-container">
+                <div class="center-content">
                     <h1>La Chasse aux Renards</h1>
+                    <div class="board-selector-container"></div>
                 </div>
-                <div class="board-selector-container"></div>
                 <div class="user-info-container">
                     <user-info></user-info>
                 </div>
