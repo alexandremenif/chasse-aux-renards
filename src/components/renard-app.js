@@ -11,13 +11,15 @@ class RenardApp extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.user = undefined; // Initial state: unknown
         this._unsubscribeUser = () => {};
     }
 
     connectedCallback() {
         this._unsubscribeUser = userService.onUserChanged(user => {
-            this._render(user);
-            if (user) {
+            this.user = user;
+            this._render();
+            if (this.user) {
                 this._attachEventListeners();
             }
         });
@@ -47,8 +49,19 @@ class RenardApp extends HTMLElement {
         });
     }
 
-    _render(user) {
-        if (user) {
+    _render() {
+
+        if (this.user === undefined) {
+            // Auth state is unknown, render nothing.
+            this.shadowRoot.innerHTML = '';
+            return;
+        }
+
+        if (this.user === null) {
+            // User is known to be logged out.
+            this.shadowRoot.innerHTML = `<login-page></login-page>`;
+        } else {
+            // User is logged in.
             this.shadowRoot.innerHTML = `
                 <style>
                     add-renard-button {
@@ -64,8 +77,6 @@ class RenardApp extends HTMLElement {
                 <confirmation-modal id="confirmation-modal"></confirmation-modal>
                 <board-selection-modal></board-selection-modal>
             `;
-        } else {
-            this.shadowRoot.innerHTML = `<login-page></login-page>`;
         }
     }
 }

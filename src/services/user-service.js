@@ -8,7 +8,7 @@ const provider = new GoogleAuthProvider();
 class UserService {
   #loading;
   constructor() {
-    this.currentUser = null;
+    this.currentUser = undefined;
     this.subscribers = [];
     this.#loading = getRedirectResult(auth).catch(error => console.error("Redirect Result Error:", error));
 
@@ -21,8 +21,6 @@ class UserService {
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
-
-        console.log(userDoc)
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
