@@ -14,11 +14,10 @@ class UserService {
 
     onAuthStateChanged(auth, async (firebaseUser) => {
 
-      console.log(firebaseUser)
-
       await this.#loading;
 
       if (firebaseUser) {
+        console.log(firebaseUser)
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
 
@@ -26,7 +25,7 @@ class UserService {
           const userData = userDoc.data();
           const boardPromises = userData.boardIds.map(id => getDoc(doc(db, 'boards', id)));
           const boardDocs = await Promise.all(boardPromises);
-          
+
           const boards = boardDocs.map(doc => ({ id: doc.id, owner: doc.data().owner }));
 
           this.currentUser = {

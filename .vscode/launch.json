@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Web App",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "pattern": "Local:\\s+(http://localhost:[0-9]+)",
+                "uriFormat": "%s",
+                "action": "debugWithChrome"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Emulator",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "emulator"
+            ],
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Web App & Emulator",
+            "configurations": [
+                "Start Emulator",
+                "Start Web App"
+            ]
+        }
+    ]
+}

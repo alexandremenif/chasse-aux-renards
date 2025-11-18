@@ -6,11 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "vite build && firebase deploy --only hosting",
+    "deploy:test": "vite build && firebase hosting:channel:deploy test-channel",
+    "emulator": "firebase emulators:start --import=./firebase-emulator-data --export-on-exit",
+    "seed": "node scripts/seed.js"
   },
   "devDependencies": {
     "@vite-pwa/assets-generator": "^1.0.0",
     "firebase-admin": "^13.4.0",
+    "firebase-tools": "^14.24.0",
     "sharp": "^0.34.3",
     "vite": "^7.0.4",
     "vite-plugin-pwa": "^1.0.2"

@@ -1,8 +1,8 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 // Reverting to the previous, stable way of initializing Firestore
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence, connectFirestoreEmulator } from "firebase/firestore";
 
 // For signInWitHRedirect, we must use the domain where the application is currently hosted
 const authDomain = window.location.hostname;
@@ -26,6 +26,12 @@ const auth = getAuth(app);
 
 // Get the Firestore instance
 const db = getFirestore(app, 'chasse-aux-renards');
+
+if (import.meta.env.DEV) {
+  connectAuthEmulator(auth, "http://localhost:9099");
+  connectFirestoreEmulator(db, 'localhost', 8080);
+}
+
 
 // Enable offline persistence using the deprecated but functional method
 enableIndexedDbPersistence(db)
