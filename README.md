@@ -34,18 +34,16 @@ The intended workflow is to create users by interacting with the app, and then s
     npm run dev
     ```
 
-3.  **Create Test Users:**
-    Open the application in your browser (e.g., `http://localhost:5173`). Use the "Sign in with Google" button to create the following three test users. The emulator will show a pop-up where you can enter the details.
-
-    *   `john.doe@example.com` (will be the parent)
-    *   `jane.doe@example.com` (will be a child)
-    *   `jimmy.doe@example.com` (will be a child)
-
-4.  **Seed the Database:**
-    Once the users have been created in the Auth emulator, run the seed script in a **new terminal window**. This script will find the users you just created and populate the database with their corresponding boards and rewards.
+3.  **Seed the Database:**
+    Once the emulators are running, run the seed script in a **new terminal window**. This script will automatically create the test users in the Auth emulator and populate the database with their corresponding boards and rewards.
 
     ```bash
     npm run seed
     ```
 
-After seeding, you can refresh the app. The users will now have their data loaded correctly. You only need to run the seed script once after creating the users. The emulator will persist the data for subsequent sessions.
+    The following users will be created:
+    *   `john.doe@example.com` (parent)
+    *   `jane.doe@example.com` (child)
+    *   `jimmy.doe@example.com` (child)
+
+After seeding, you can refresh the app. The users will now have their data loaded correctly. You only need to run the seed script once. The emulator will persist the data for subsequent sessions.
