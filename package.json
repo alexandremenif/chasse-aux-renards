@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "deploy": "vite build && firebase deploy --only hosting",
     "deploy:test": "vite build && firebase hosting:channel:deploy test-channel",
-    "emulator": "firebase emulators:start --import=./firebase-emulator-data --export-on-exit",
+    "emulator": "./scripts/start-emulator.sh",
     "seed": "node scripts/seed.js"
   },
   "devDependencies": {

@@ -2,5 +2,4 @@
 node_modules/
 .firebase/
 dist/
-firebase-emulator-data/
 *.log

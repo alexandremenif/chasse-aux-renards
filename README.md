@@ -23,10 +23,11 @@ This project uses Vite for the development server and Firebase for the backend. 
 The intended workflow is to create users by interacting with the app, and then seed the database with data for those users.
 
 1.  **Start the Firebase Emulator:**
-    This will start the local Firebase services.
+    This will start the local Firebase services and **automatically seed the database** with test users and data.
     ```bash
     npm run emulator
     ```
+    *Note: The emulator starts fresh each time. Data is not persisted between sessions.*
 
 2.  **Start the Development Server:**
     In a **new terminal window**, start the Vite development server.
@@ -34,16 +35,7 @@ The intended workflow is to create users by interacting with the app, and then s
     npm run dev
     ```
 
-3.  **Seed the Database:**
-    Once the emulators are running, run the seed script in a **new terminal window**. This script will automatically create the test users in the Auth emulator and populate the database with their corresponding boards and rewards.
-
-    ```bash
-    npm run seed
-    ```
-
-    The following users will be created:
+    The following users are available for testing:
     *   `john.doe@example.com` (parent)
     *   `jane.doe@example.com` (child)
     *   `jimmy.doe@example.com` (child)
-
-After seeding, you can refresh the app. The users will now have their data loaded correctly. You only need to run the seed script once. The emulator will persist the data for subsequent sessions.
