@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // By default, no one has access to anything.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Rule for the 'users' collection
+    // Read-only for the owner.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Rule for the 'boards' collection
+    match /boards/{boardId} {
+      // Read allowed if the user is authenticated and the board ID
+      // is in their 'boardIds' list.
+      allow read: if request.auth != null &&
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.boardIds.hasAny([boardId]);
+    }
+  }
+}

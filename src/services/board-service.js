@@ -1,7 +1,8 @@
 // services/board-service.js
 import { userService } from './user-service';
-import { db } from '../firebase';
-import { doc, onSnapshot, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { db, functions } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
 const LAST_SELECTED_BOARD_KEY = 'lastSelectedBoardId';
 
@@ -10,14 +11,15 @@ class BoardService {
     this.currentBoardId = null;
     this.boardSubscribers = [];
     this.tokenSubscribers = [];
-    this.unsubscribeFromBoard = () => {};
+    this.unsubscribeFromBoard = () => { };
     this.localLastTokenUpdateTime = null;
+    this.lastServerState = null;
 
     userService.onUserChanged(user => {
       if (user && user.boards.length > 0) {
         const lastSelectedId = localStorage.getItem(LAST_SELECTED_BOARD_KEY);
         const isValidLastSelected = user.boards.some(b => b.id === lastSelectedId);
-        
+
         const boardIdToSelect = isValidLastSelected ? lastSelectedId : user.boards[0].id;
         this.selectCurrentBoard(boardIdToSelect);
 
@@ -38,7 +40,8 @@ class BoardService {
       this.unsubscribeFromBoard();
       // Reset local timestamp on board switch to ensure the logic works for each board.
       this.localLastTokenUpdateTime = null;
-      
+      this.lastServerState = null;
+
       const boardRef = doc(db, 'boards', this.currentBoardId);
       this.unsubscribeFromBoard = onSnapshot(boardRef, (doc) => {
         const boardData = { id: doc.id, ...doc.data() };
@@ -48,14 +51,21 @@ class BoardService {
   }
 
   #handleBoardUpdate(boardData) {
+    this.lastServerState = boardData;
     const remoteTimestamp = boardData.lastTokenUpdateTime?.toMillis();
-    
+
     this.#notifyBoardSubscribers(boardData);
 
     // Only notify subscribers if we have a previous timestamp and the new one is different.
     // This prevents the animation from firing on the initial load of a board.
+    // Also check if the totalToken count actually changed to avoid re-triggering animation 
+    // if the optimistic update already set the correct count.
     if (this.localLastTokenUpdateTime && remoteTimestamp !== this.localLastTokenUpdateTime) {
-        this.#notifyTokenSubscribers();
+      // We can't easily check if the optimistic update already happened just by timestamp.
+      // But we can check if the animation was recently triggered optimistically?
+      // Simpler approach: The UI component checks (this.total <= this.previousTotal) before animating.
+      // So if we notify here, and the total is the same as the optimistic one, the UI won't animate again.
+      this.#notifyTokenSubscribers();
     }
 
     // Always update to the latest known timestamp from the server.
@@ -63,63 +73,90 @@ class BoardService {
   }
 
   async addNewToken() {
-    if (!this.currentBoardId) return;
-    const boardRef = doc(db, 'boards', this.currentBoardId);
-    const boardDoc = await getDoc(boardRef);
-    const currentTokens = boardDoc.data().totalToken || 0;
-    
-    await updateDoc(boardRef, {
-      totalToken: currentTokens + 1,
-      lastTokenUpdateTime: serverTimestamp()
-    });
+    if (!this.currentBoardId || !this.lastServerState) return;
+
+    // Optimistic Update
+    const optimisticState = {
+      ...this.lastServerState,
+      totalToken: (this.lastServerState.totalToken || 0) + 1
+    };
+    this.#notifyBoardSubscribers(optimisticState);
+    this.#notifyTokenSubscribers(); // Trigger animation immediately
+
+    const addToken = httpsCallable(functions, 'addToken');
+    try {
+      await addToken({ boardId: this.currentBoardId });
+    } catch (error) {
+      console.error("Error adding token:", error);
+      // Rollback
+      this.#notifyBoardSubscribers(this.lastServerState);
+    }
   }
 
   async toggleRewardSelection(rewardId) {
-    if (!this.currentBoardId) return;
-    const boardRef = doc(db, 'boards', this.currentBoardId);
-    const boardDoc = await getDoc(boardRef);
-    const boardData = boardDoc.data();
-    
-    const reward = boardData.rewards[rewardId];
+    if (!this.currentBoardId || !this.lastServerState) return;
+
+    const reward = this.lastServerState.rewards[rewardId];
     if (!reward) return;
 
-    const newTotalToken = reward.pending 
-        ? boardData.totalToken + reward.cost
-        : boardData.totalToken - reward.cost;
+    const newTotalToken = reward.pending
+      ? this.lastServerState.totalToken + reward.cost
+      : this.lastServerState.totalToken - reward.cost;
 
-    if (newTotalToken < 0 && !reward.pending) return; // Not enough tokens and not un-pending
-    
-    const newRewards = {
-        ...boardData.rewards,
+    if (newTotalToken < 0 && !reward.pending) return;
+
+    // Optimistic Update
+    const optimisticState = {
+      ...this.lastServerState,
+      rewards: {
+        ...this.lastServerState.rewards,
         [rewardId]: { ...reward, pending: !reward.pending }
-    };
-
-    await updateDoc(boardRef, {
-      rewards: newRewards,
+      },
       totalToken: newTotalToken
-    });
+    };
+    this.#notifyBoardSubscribers(optimisticState);
+
+    const toggleReward = httpsCallable(functions, 'toggleReward');
+    try {
+      await toggleReward({ boardId: this.currentBoardId, rewardId });
+    } catch (error) {
+      console.error("Error toggling reward:", error);
+      // Rollback
+      this.#notifyBoardSubscribers(this.lastServerState);
+    }
   }
 
   async validateReward(rewardId) {
-    if (!this.currentBoardId) return;
-    const boardRef = doc(db, 'boards', this.currentBoardId);
-    
-    // Simply mark the reward as no longer pending. Do not delete it.
-    // We use dot notation to update a specific field within the 'rewards' map.
-    const rewardPendingField = `rewards.${rewardId}.pending`;
-    await updateDoc(boardRef, {
-      [rewardPendingField]: false
-    });
+    if (!this.currentBoardId || !this.lastServerState) return;
+
+    // Optimistic Update
+    const optimisticState = {
+      ...this.lastServerState,
+      rewards: {
+        ...this.lastServerState.rewards,
+        [rewardId]: { ...this.lastServerState.rewards[rewardId], pending: false }
+      }
+    };
+    this.#notifyBoardSubscribers(optimisticState);
+
+    const confirmReward = httpsCallable(functions, 'confirmReward');
+    try {
+      await confirmReward({ boardId: this.currentBoardId, rewardId });
+    } catch (error) {
+      console.error("Error confirming reward:", error);
+      // Rollback
+      this.#notifyBoardSubscribers(this.lastServerState);
+    }
   }
 
   #notifyBoardSubscribers(boardData) {
     this.boardSubscribers.forEach(handler => handler(boardData));
   }
-  
+
   #notifyTokenSubscribers() {
     this.tokenSubscribers.forEach(handler => handler());
   }
-  
+
   onCurrentBoardUpdated(handler) {
     this.boardSubscribers.push(handler);
     return () => {

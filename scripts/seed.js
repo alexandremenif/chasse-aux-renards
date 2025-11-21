@@ -15,7 +15,7 @@ initializeApp({
 
 // Get the Auth service and the NAMED Firestore database instance.
 const auth = getAuth();
-const db = getFirestore('chasse-aux-renards');
+const db = getFirestore();
 
 async function seedDatabase() {
   console.log('Attempting to seed database with users and data...');

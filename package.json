@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && firebase deploy --only hosting",
+    "deploy": "vite build && firebase deploy",
     "deploy:test": "vite build && firebase hosting:channel:deploy test-channel",
     "emulator": "./scripts/start-emulator.sh",
     "seed": "node scripts/seed.js"
