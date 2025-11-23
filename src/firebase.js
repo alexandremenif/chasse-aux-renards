@@ -12,13 +12,13 @@ console.log('authDomain:', authDomain)
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC-skTKkoruH3pPYwutjHMbOKTXkfN0BPs",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain,
-  projectId: "la-chasse-aux-renards",
-  storageBucket: "la-chasse-aux-renards.appspot.com",
-  messagingSenderId: "88287211693",
-  appId: "1:88287211693:web:b9a3bc7a8391a860aa9624",
-  measurementId: "G-00VK3FFKTQ"
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase App
