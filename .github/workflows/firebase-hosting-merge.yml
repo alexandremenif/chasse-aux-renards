@@ -25,6 +25,9 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LA_CHASSE_AUX_RENARDS }}
           channelId: live
           projectId: la-chasse-aux-renards
+      - name: Install Functions Dependencies
+        run: npm ci
+        working-directory: functions
       - name: Deploy Functions
         uses: w9jds/firebase-action@master
         with:
