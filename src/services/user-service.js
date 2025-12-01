@@ -17,7 +17,6 @@ class UserService {
       await this.#loading;
 
       if (firebaseUser) {
-        console.log(firebaseUser)
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
 

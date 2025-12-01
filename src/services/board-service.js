@@ -20,6 +20,8 @@ class BoardService {
     this.currentUserId = null;
 
     userService.onUserChanged(user => {
+      if (user === undefined) return;
+
       this.currentUserId = user ? user.id : null;
       if (user && user.boards.length > 0) {
         const lastSelectedId = localStorage.getItem(LAST_SELECTED_BOARD_KEY);
@@ -30,7 +32,7 @@ class BoardService {
 
       } else {
         this.currentBoardId = null;
-        localStorage.removeItem(LAST_SELECTED_BOARD_KEY);
+        this.lastServerState = null; // Clear stale state to prevent unwanted renders
         this.unsubscribeFromBoard();
         this.#notifyBoardSubscribers(null);
       }
