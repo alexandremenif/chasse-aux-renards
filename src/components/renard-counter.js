@@ -8,7 +8,7 @@ class RenardCounter extends HTMLElement {
         this.total = 0;
         this.previousTotal = 0;
         this.isFirstRender = true;
-        this.unsubscribeToken = () => {};
+        this.unsubscribeToken = () => { };
     }
 
     connectedCallback() {
@@ -17,7 +17,7 @@ class RenardCounter extends HTMLElement {
         this.render();
 
         this.unsubscribeToken = boardService.onNewToken(() => {
-            this.#playAnimation(); // Call the private method
+            this.#playAnimation();
         });
     }
 
@@ -35,8 +35,7 @@ class RenardCounter extends HTMLElement {
         this.total = parseInt(newValue || '0', 10);
         this.render();
     }
-    
-    // Method is now private
+
     #playAnimation() {
         if (this.total <= this.previousTotal) return;
 
@@ -125,12 +124,12 @@ class RenardCounter extends HTMLElement {
             `;
             this.isFirstRender = false;
         } else {
-             const goldValue = this.shadowRoot.querySelector('#gold-container .counter-value');
-             const silverValue = this.shadowRoot.querySelector('#silver-container .counter-value');
-             const normalValue = this.shadowRoot.querySelector('#normal-container .counter-value');
-             if(goldValue) goldValue.textContent = gold;
-             if(silverValue) silverValue.textContent = silver;
-             if(normalValue) normalValue.textContent = normal;
+            const goldValue = this.shadowRoot.querySelector('#gold-container .counter-value');
+            const silverValue = this.shadowRoot.querySelector('#silver-container .counter-value');
+            const normalValue = this.shadowRoot.querySelector('#normal-container .counter-value');
+            if (goldValue) goldValue.textContent = gold;
+            if (silverValue) silverValue.textContent = silver;
+            if (normalValue) normalValue.textContent = normal;
         }
     }
 
@@ -152,7 +151,7 @@ class RenardCounter extends HTMLElement {
                 top: `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40 - 20}px`,
                 transition: 'all 1.2s ease-in-out', pointerEvents: 'none'
             });
-            
+
             document.body.appendChild(particle);
 
             requestAnimationFrame(() => {

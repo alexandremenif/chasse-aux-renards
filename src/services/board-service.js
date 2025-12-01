@@ -13,9 +13,14 @@ class BoardService {
     this.tokenSubscribers = [];
     this.unsubscribeFromBoard = () => { };
     this.localLastTokenUpdateTime = null;
+    this.localLastTokenUpdateTime = null;
     this.lastServerState = null;
+    this.pendingActions = [];
+    this.nextSequence = 1;
+    this.currentUserId = null;
 
     userService.onUserChanged(user => {
+      this.currentUserId = user ? user.id : null;
       if (user && user.boards.length > 0) {
         const lastSelectedId = localStorage.getItem(LAST_SELECTED_BOARD_KEY);
         const isValidLastSelected = user.boards.some(b => b.id === lastSelectedId);
@@ -54,103 +59,128 @@ class BoardService {
     this.lastServerState = boardData;
     const remoteTimestamp = boardData.lastTokenUpdateTime?.toMillis();
 
-    this.#notifyBoardSubscribers(boardData);
+    // Cleanup pending actions based on server sequence
+    const lastSequences = boardData.lastActionSequences || {};
+    if (this.currentUserId) {
+      const lastProcessed = lastSequences[this.currentUserId] || 0;
 
-    // Only notify subscribers if we have a previous timestamp and the new one is different.
-    // This prevents the animation from firing on the initial load of a board.
-    // Also check if the totalToken count actually changed to avoid re-triggering animation 
-    // if the optimistic update already set the correct count.
-    if (this.localLastTokenUpdateTime && remoteTimestamp !== this.localLastTokenUpdateTime) {
-      // We can't easily check if the optimistic update already happened just by timestamp.
-      // But we can check if the animation was recently triggered optimistically?
-      // Simpler approach: The UI component checks (this.total <= this.previousTotal) before animating.
-      // So if we notify here, and the total is the same as the optimistic one, the UI won't animate again.
-      this.#notifyTokenSubscribers();
+      // Sync local sequence counter if we are behind server (e.g. after reload)
+      if (this.nextSequence <= lastProcessed) {
+        this.nextSequence = lastProcessed + 1;
+      }
+
+      this.pendingActions = this.pendingActions.filter(a => a.seq > lastProcessed);
     }
 
-    // Always update to the latest known timestamp from the server.
+    this.#notifyBoardSubscribers();
+
+    // Trigger animation if the server timestamp has changed (meaning a new token was added by someone)
+    if (this.localLastTokenUpdateTime && remoteTimestamp !== this.localLastTokenUpdateTime) {
+      this.#notifyTokenSubscribers();
+    }
     this.localLastTokenUpdateTime = remoteTimestamp;
   }
 
-  async addNewToken() {
-    if (!this.currentBoardId || !this.lastServerState) return;
+  async #performOptimisticAction(applyFn, serverCallFn, triggerAnimation = false) {
+    if (!this.currentUserId || !this.currentBoardId) return;
 
-    // Optimistic Update
-    const optimisticState = {
-      ...this.lastServerState,
-      totalToken: (this.lastServerState.totalToken || 0) + 1
-    };
-    this.#notifyBoardSubscribers(optimisticState);
-    this.#notifyTokenSubscribers(); // Trigger animation immediately
+    const seq = this.nextSequence++;
+    const action = { seq, apply: applyFn };
 
-    const addToken = httpsCallable(functions, 'addToken');
-    try {
-      await addToken({ boardId: this.currentBoardId });
-    } catch (error) {
-      console.error("Error adding token:", error);
-      // Rollback
-      this.#notifyBoardSubscribers(this.lastServerState);
+    this.pendingActions.push(action);
+    this.#notifyBoardSubscribers();
+
+    if (triggerAnimation) {
+      this.#notifyTokenSubscribers();
     }
+
+    try {
+      await serverCallFn(seq);
+    } catch (error) {
+      console.error("Action failed:", error);
+      // Rollback: remove this specific action
+      this.pendingActions = this.pendingActions.filter(a => a.seq !== seq);
+      this.#notifyBoardSubscribers();
+    }
+  }
+
+  async addNewToken() {
+    await this.#performOptimisticAction(
+      (state) => ({ ...state, totalToken: (state.totalToken || 0) + 1 }),
+      (seq) => {
+        const addToken = httpsCallable(functions, 'addToken');
+        return addToken({ boardId: this.currentBoardId, sequence: seq });
+      },
+      true // Trigger animation
+    );
   }
 
   async toggleRewardSelection(rewardId) {
-    if (!this.currentBoardId || !this.lastServerState) return;
+    await this.#performOptimisticAction(
+      (state) => {
+        const reward = state.rewards[rewardId];
+        if (!reward) return state;
 
-    const reward = this.lastServerState.rewards[rewardId];
-    if (!reward) return;
+        const newTotalToken = reward.pending
+          ? state.totalToken + reward.cost
+          : state.totalToken - reward.cost;
 
-    const newTotalToken = reward.pending
-      ? this.lastServerState.totalToken + reward.cost
-      : this.lastServerState.totalToken - reward.cost;
+        if (newTotalToken < 0 && !reward.pending) return state;
 
-    if (newTotalToken < 0 && !reward.pending) return;
-
-    // Optimistic Update
-    const optimisticState = {
-      ...this.lastServerState,
-      rewards: {
-        ...this.lastServerState.rewards,
-        [rewardId]: { ...reward, pending: !reward.pending }
+        return {
+          ...state,
+          rewards: {
+            ...state.rewards,
+            [rewardId]: { ...reward, pending: !reward.pending }
+          },
+          totalToken: newTotalToken
+        };
       },
-      totalToken: newTotalToken
-    };
-    this.#notifyBoardSubscribers(optimisticState);
-
-    const toggleReward = httpsCallable(functions, 'toggleReward');
-    try {
-      await toggleReward({ boardId: this.currentBoardId, rewardId });
-    } catch (error) {
-      console.error("Error toggling reward:", error);
-      // Rollback
-      this.#notifyBoardSubscribers(this.lastServerState);
-    }
+      (seq) => {
+        const toggleReward = httpsCallable(functions, 'toggleReward');
+        return toggleReward({ boardId: this.currentBoardId, rewardId, sequence: seq });
+      }
+    );
   }
 
   async validateReward(rewardId) {
-    if (!this.currentBoardId || !this.lastServerState) return;
-
-    // Optimistic Update
-    const optimisticState = {
-      ...this.lastServerState,
-      rewards: {
-        ...this.lastServerState.rewards,
-        [rewardId]: { ...this.lastServerState.rewards[rewardId], pending: false }
+    await this.#performOptimisticAction(
+      (state) => ({
+        ...state,
+        rewards: {
+          ...state.rewards,
+          [rewardId]: { ...state.rewards[rewardId], pending: false }
+        }
+      }),
+      (seq) => {
+        const confirmReward = httpsCallable(functions, 'confirmReward');
+        return confirmReward({ boardId: this.currentBoardId, rewardId, sequence: seq });
       }
-    };
-    this.#notifyBoardSubscribers(optimisticState);
-
-    const confirmReward = httpsCallable(functions, 'confirmReward');
-    try {
-      await confirmReward({ boardId: this.currentBoardId, rewardId });
-    } catch (error) {
-      console.error("Error confirming reward:", error);
-      // Rollback
-      this.#notifyBoardSubscribers(this.lastServerState);
-    }
+    );
   }
 
-  #notifyBoardSubscribers(boardData) {
-    this.boardSubscribers.forEach(handler => handler(boardData));
+  #notifyBoardSubscribers() {
+    if (!this.lastServerState) {
+      this.boardSubscribers.forEach(handler => handler(null));
+      return;
+    }
+
+    let viewState = { ...this.lastServerState };
+
+    // Deep copy rewards to avoid mutating lastServerState during projection
+    if (viewState.rewards) {
+      viewState.rewards = { ...viewState.rewards };
+      for (const key in viewState.rewards) {
+        viewState.rewards[key] = { ...viewState.rewards[key] };
+      }
+    }
+
+    // Apply pending actions
+    for (const action of this.pendingActions) {
+      viewState = action.apply(viewState);
+    }
+
+    this.boardSubscribers.forEach(handler => handler(viewState));
   }
 
   #notifyTokenSubscribers() {

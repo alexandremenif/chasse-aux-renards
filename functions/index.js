@@ -31,7 +31,7 @@ exports.addToken = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const { boardId } = request.data;
+    const { boardId, sequence } = request.data;
     console.log(`[addToken] Called with boardId: ${boardId}, User: ${request.auth.uid}`);
 
     if (!boardId) {
@@ -60,7 +60,9 @@ exports.addToken = onCall(async (request) => {
 
         transaction.update(boardRef, {
             totalToken: currentTokens + 1,
-            lastTokenUpdateTime: FieldValue.serverTimestamp()
+            totalToken: currentTokens + 1,
+            lastTokenUpdateTime: FieldValue.serverTimestamp(),
+            [`lastActionSequences.${request.auth.uid}`]: sequence || 0
         });
 
         return { success: true, newTotal: currentTokens + 1 };
@@ -72,7 +74,7 @@ exports.toggleReward = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const { boardId, rewardId } = request.data;
+    const { boardId, rewardId, sequence } = request.data;
     if (!boardId || !rewardId) {
         throw new HttpsError('invalid-argument', 'The function must be called with a boardId and rewardId.');
     }
@@ -110,7 +112,9 @@ exports.toggleReward = onCall(async (request) => {
 
         transaction.update(boardRef, {
             rewards: newRewards,
-            totalToken: newTotalToken
+            rewards: newRewards,
+            totalToken: newTotalToken,
+            [`lastActionSequences.${request.auth.uid}`]: sequence || 0
         });
 
         return { success: true };
@@ -122,7 +126,7 @@ exports.confirmReward = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
-    const { boardId, rewardId } = request.data;
+    const { boardId, rewardId, sequence } = request.data;
     if (!boardId || !rewardId) {
         throw new HttpsError('invalid-argument', 'The function must be called with a boardId and rewardId.');
     }
@@ -137,7 +141,8 @@ exports.confirmReward = onCall(async (request) => {
     const rewardPendingField = `rewards.${rewardId}.pending`;
 
     await boardRef.update({
-        [rewardPendingField]: false
+        [rewardPendingField]: false,
+        [`lastActionSequences.${request.auth.uid}`]: sequence || 0
     });
 
     return { success: true };
