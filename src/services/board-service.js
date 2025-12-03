@@ -1,8 +1,7 @@
 // services/board-service.js
 import { userService } from './user-service';
-import { db, functions } from '../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
+import { db } from '../firebase';
+import { doc, onSnapshot, updateDoc, runTransaction, serverTimestamp, FieldValue, increment } from 'firebase/firestore';
 
 const LAST_SELECTED_BOARD_KEY = 'lastSelectedBoardId';
 
@@ -12,17 +11,13 @@ class BoardService {
     this.boardSubscribers = [];
     this.tokenSubscribers = [];
     this.unsubscribeFromBoard = () => { };
-    this.localLastTokenUpdateTime = null;
-    this.localLastTokenUpdateTime = null;
-    this.lastServerState = null;
-    this.pendingActions = [];
-    this.nextSequence = 1;
-    this.currentUserId = null;
+
+    this.currentBoardData = null;
+    this.lastNewTokenTime = null;
 
     userService.onUserChanged(user => {
       if (user === undefined) return;
 
-      this.currentUserId = user ? user.id : null;
       if (user && user.boards.length > 0) {
         const lastSelectedId = localStorage.getItem(LAST_SELECTED_BOARD_KEY);
         const isValidLastSelected = user.boards.some(b => b.id === lastSelectedId);
@@ -32,7 +27,7 @@ class BoardService {
 
       } else {
         this.currentBoardId = null;
-        this.lastServerState = null; // Clear stale state to prevent unwanted renders
+        this.currentBoardData = null;
         this.unsubscribeFromBoard();
         this.#notifyBoardSubscribers(null);
       }
@@ -45,144 +40,105 @@ class BoardService {
       localStorage.setItem(LAST_SELECTED_BOARD_KEY, boardId);
 
       this.unsubscribeFromBoard();
-      // Reset local timestamp on board switch to ensure the logic works for each board.
-      this.localLastTokenUpdateTime = null;
-      this.lastServerState = null;
+      this.currentBoardData = null;
+      this.localLastNewTokenTime = null;
 
       const boardRef = doc(db, 'boards', this.currentBoardId);
       this.unsubscribeFromBoard = onSnapshot(boardRef, (doc) => {
-        const boardData = { id: doc.id, ...doc.data() };
-        this.#handleBoardUpdate(boardData);
+        if (doc.exists()) {
+          const boardData = { id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) };
+
+          // Calculate available tokens
+          let pendingCost = 0;
+          if (boardData.rewards) {
+            Object.values(boardData.rewards).forEach(r => {
+              if (r.pending) pendingCost += r.cost;
+            });
+          }
+          boardData.availableToken = (boardData.totalToken || 0) - pendingCost;
+
+          this.currentBoardData = boardData;
+          const remoteTimestamp = boardData.lastNewTokenTime?.toMillis();
+
+          this.#notifyBoardSubscribers(boardData);
+
+          // Only notify subscribers if we have a previous timestamp and the new one is different.
+          // This prevents the animation from firing on the initial load of a board.
+          if (this.localLastNewTokenTime && remoteTimestamp !== this.localLastNewTokenTime) {
+            this.#notifyTokenSubscribers();
+          }
+
+          // Always update to the latest known timestamp from the server.
+          this.localLastNewTokenTime = remoteTimestamp;
+        }
       });
     }
   }
 
-  #handleBoardUpdate(boardData) {
-    this.lastServerState = boardData;
-    const remoteTimestamp = boardData.lastTokenUpdateTime?.toMillis();
+  async addToken() {
+    if (!this.currentBoardId) return;
+    const boardRef = doc(db, 'boards', this.currentBoardId);
 
-    // Cleanup pending actions based on server sequence
-    const lastSequences = boardData.lastActionSequences || {};
-    if (this.currentUserId) {
-      const lastProcessed = lastSequences[this.currentUserId] || 0;
-
-      // Sync local sequence counter if we are behind server (e.g. after reload)
-      if (this.nextSequence <= lastProcessed) {
-        this.nextSequence = lastProcessed + 1;
-      }
-
-      this.pendingActions = this.pendingActions.filter(a => a.seq > lastProcessed);
-    }
-
-    this.#notifyBoardSubscribers();
-
-    // Trigger animation if the server timestamp has changed (meaning a new token was added by someone)
-    if (this.localLastTokenUpdateTime && remoteTimestamp !== this.localLastTokenUpdateTime) {
-      this.#notifyTokenSubscribers();
-    }
-    this.localLastTokenUpdateTime = remoteTimestamp;
-  }
-
-  async #performOptimisticAction(applyFn, serverCallFn, triggerAnimation = false) {
-    if (!this.currentUserId || !this.currentBoardId) return;
-
-    const seq = this.nextSequence++;
-    const action = { seq, apply: applyFn };
-
-    this.pendingActions.push(action);
-    this.#notifyBoardSubscribers();
-
-    if (triggerAnimation) {
-      this.#notifyTokenSubscribers();
-    }
-
-    try {
-      await serverCallFn(seq);
-    } catch (error) {
-      console.error("Action failed:", error);
-      // Rollback: remove this specific action
-      this.pendingActions = this.pendingActions.filter(a => a.seq !== seq);
-      this.#notifyBoardSubscribers();
-    }
-  }
-
-  async addNewToken() {
-    await this.#performOptimisticAction(
-      (state) => ({ ...state, totalToken: (state.totalToken || 0) + 1 }),
-      (seq) => {
-        const addToken = httpsCallable(functions, 'addToken');
-        return addToken({ boardId: this.currentBoardId, sequence: seq });
-      },
-      true // Trigger animation
-    );
+    // Atomic update
+    await updateDoc(boardRef, {
+      totalToken: increment(1),
+      lastNewTokenTime: new Date()
+    });
   }
 
   async toggleRewardSelection(rewardId) {
-    await this.#performOptimisticAction(
-      (state) => {
-        const reward = state.rewards[rewardId];
-        if (!reward) return state;
+    if (!this.currentBoardId || !this.currentBoardData) return;
 
-        const newTotalToken = reward.pending
-          ? state.totalToken + reward.cost
-          : state.totalToken - reward.cost;
+    const reward = this.currentBoardData.rewards[rewardId];
+    if (!reward) return;
 
-        if (newTotalToken < 0 && !reward.pending) return state;
+    const newPendingStatus = !reward.pending;
 
-        return {
-          ...state,
-          rewards: {
-            ...state.rewards,
-            [rewardId]: { ...reward, pending: !reward.pending }
-          },
-          totalToken: newTotalToken
-        };
-      },
-      (seq) => {
-        const toggleReward = httpsCallable(functions, 'toggleReward');
-        return toggleReward({ boardId: this.currentBoardId, rewardId, sequence: seq });
+    // Client-side validation for solvency
+    if (newPendingStatus) {
+      if (this.currentBoardData.availableToken < reward.cost) {
+        console.warn("Insufficient funds to select reward");
+        return;
       }
-    );
+    }
+
+    const boardRef = doc(db, 'boards', this.currentBoardId);
+    await updateDoc(boardRef, {
+      [`rewards.${rewardId}.pending`]: newPendingStatus
+    });
   }
 
   async validateReward(rewardId) {
-    await this.#performOptimisticAction(
-      (state) => ({
-        ...state,
-        rewards: {
-          ...state.rewards,
-          [rewardId]: { ...state.rewards[rewardId], pending: false }
-        }
-      }),
-      (seq) => {
-        const confirmReward = httpsCallable(functions, 'confirmReward');
-        return confirmReward({ boardId: this.currentBoardId, rewardId, sequence: seq });
-      }
-    );
+    if (!this.currentBoardId) return;
+    const boardRef = doc(db, 'boards', this.currentBoardId);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const boardDoc = await transaction.get(boardRef);
+        if (!boardDoc.exists()) throw new Error("Board not found");
+
+        const data = boardDoc.data();
+        const reward = data.rewards[rewardId];
+
+        if (!reward) throw new Error("Reward not found");
+        if (!reward.pending) throw new Error("Reward not pending");
+
+        // Check if we have enough BANKED tokens to confirm
+        // (Since pending didn't reduce totalToken, we check totalToken directly)
+        if (data.totalToken < reward.cost) throw new Error("Insufficient tokens");
+
+        transaction.update(boardRef, {
+          [`rewards.${rewardId}.pending`]: false,
+          totalToken: increment(-reward.cost)
+        });
+      });
+    } catch (e) {
+      console.error("Transaction failed: ", e);
+    }
   }
 
-  #notifyBoardSubscribers() {
-    if (!this.lastServerState) {
-      this.boardSubscribers.forEach(handler => handler(null));
-      return;
-    }
-
-    let viewState = { ...this.lastServerState };
-
-    // Deep copy rewards to avoid mutating lastServerState during projection
-    if (viewState.rewards) {
-      viewState.rewards = { ...viewState.rewards };
-      for (const key in viewState.rewards) {
-        viewState.rewards[key] = { ...viewState.rewards[key] };
-      }
-    }
-
-    // Apply pending actions
-    for (const action of this.pendingActions) {
-      viewState = action.apply(viewState);
-    }
-
-    this.boardSubscribers.forEach(handler => handler(viewState));
+  #notifyBoardSubscribers(data) {
+    this.boardSubscribers.forEach(handler => handler(data));
   }
 
   #notifyTokenSubscribers() {
@@ -191,6 +147,9 @@ class BoardService {
 
   onCurrentBoardUpdated(handler) {
     this.boardSubscribers.push(handler);
+    if (this.currentBoardData) {
+      handler(this.currentBoardData);
+    }
     return () => {
       this.boardSubscribers = this.boardSubscribers.filter(sub => sub !== handler);
     };

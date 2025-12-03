@@ -16,10 +16,37 @@ service cloud.firestore {
 
     // Rule for the 'boards' collection
     match /boards/{boardId} {
-      // Read allowed if the user is authenticated and the board ID
-      // is in their 'boardIds' list.
-      allow read: if request.auth != null &&
-                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.boardIds.hasAny([boardId]);
+      // Helper to check if user has access to the board
+      function hasAccess() {
+        return request.auth != null &&
+               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.boardIds.hasAny([boardId]);
+      }
+
+      // Helper to check if user is a parent
+      function isParent() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isParent == true;
+      }
+
+      allow read: if hasAccess();
+
+      allow create: if isParent() && hasAccess();
+      
+      allow update: if hasAccess() && (
+        isParent() || 
+        (
+          // Child restrictions:
+          // 1. Cannot change totalToken
+          request.resource.data.totalToken == resource.data.totalToken &&
+          // 2. Cannot change owner
+          request.resource.data.owner == resource.data.owner &&
+          // 3. Cannot change label
+          request.resource.data.label == resource.data.label &&
+          // 4. Cannot add/remove rewards (size check)
+          request.resource.data.rewards.size() == resource.data.rewards.size()
+        )
+      );
+
+      allow delete: if isParent() && hasAccess();
     }
   }
 }

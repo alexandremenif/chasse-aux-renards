@@ -8,12 +8,12 @@ class RewardBoard extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.boardData = null;
-        this.unsubscribeBoard = () => {};
+        this.unsubscribeBoard = () => { };
     }
 
     connectedCallback() {
         this._setupHTML();
-        
+
         this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
                 this.boardData = boardData;
@@ -89,14 +89,14 @@ class RewardBoard extends HTMLElement {
     _render() {
         if (!this.boardData) return;
 
-        const { totalToken, rewards } = this.boardData;
-        
+        const { availableToken, rewards } = this.boardData;
+
         const renardCounter = this.shadowRoot.querySelector('renard-counter');
-        renardCounter.setAttribute('total', String(totalToken));
-        
+        renardCounter.setAttribute('total', String(availableToken));
+
         const rewardsGrid = this.shadowRoot.querySelector('.rewards-grid');
         rewardsGrid.innerHTML = '';
-        
+
         if (rewards) {
             const sortedRewards = Object.entries(rewards)
                 .map(([id, reward]) => ({ ...reward, id }))
@@ -109,7 +109,9 @@ class RewardBoard extends HTMLElement {
                 rewardCard.setAttribute('cost', reward.cost);
                 rewardCard.setAttribute('icon', reward.icon);
                 rewardCard.setAttribute('is-pending', String(reward.pending));
-                rewardCard.setAttribute('can-afford', String(totalToken >= reward.cost || reward.pending));
+                // Check affordability against availableToken
+                const canAfford = availableToken >= reward.cost || reward.pending;
+                rewardCard.setAttribute('can-afford', String(canAfford));
                 rewardsGrid.appendChild(rewardCard);
             });
         }

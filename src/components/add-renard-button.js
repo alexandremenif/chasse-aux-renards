@@ -18,7 +18,7 @@ class AddRenardButton extends HTMLElement {
         }
 
         this.shadowRoot.querySelector('button').addEventListener('click', () => {
-            boardService.addNewToken();
+            boardService.addToken();
         });
     }
 

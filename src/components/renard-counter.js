@@ -39,8 +39,8 @@ class RenardCounter extends HTMLElement {
     #playAnimation() {
         if (this.total <= this.previousTotal) return;
 
-        const oldCounts = this._calculateRenards(this.previousTotal);
-        const newCounts = this._calculateRenards(this.total);
+        const oldCounts = this.#calculateRenards(this.previousTotal);
+        const newCounts = this.#calculateRenards(this.total);
 
         const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
         if (normalCounterEl) {
@@ -48,22 +48,25 @@ class RenardCounter extends HTMLElement {
             setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), 400);
         }
 
-        if (newCounts.silver > oldCounts.silver) {
-            this._animateTransform('normal-container', 'silver-container', 'normal');
+        // Normal to Silver (includes the case where we go from 9 to 0)
+        if (newCounts.silver > oldCounts.silver || (oldCounts.silver === 9 && newCounts.silver === 0)) {
+            this.#animateTransform('normal-container', 'silver-container', 'normal');
         }
+
+        // Silver to Gold
         if (newCounts.gold > oldCounts.gold) {
-            this._animateTransform('silver-container', 'gold-container', 'silver');
+            this.#animateTransform('silver-container', 'gold-container', 'silver');
         }
     }
 
-    _calculateRenards(total) {
+    #calculateRenards(total) {
         const gold = Math.floor(total / 100);
         const silver = Math.floor((total % 100) / 10);
         const normal = total % 10;
         return { gold, silver, normal };
     }
 
-    _createCounterBlockHTML(id, label, count, iconType, colors) {
+    #createCounterBlockHTML(id, label, count, iconType, colors) {
         return `
             <div id="${id}" class="counter-block" title="${label}" style="background-color: ${colors.bg}; border-color: ${colors.border};">
                 <h3 class="counter-label" style="color: ${colors.text};">
@@ -80,12 +83,12 @@ class RenardCounter extends HTMLElement {
     render() {
         // isFirstRender logic ensures this runs only after connectedCallback sets the initial total.
         const total = this.isFirstRender ? this.total : parseInt(this.getAttribute('total') || '0', 10);
-        const { gold, silver, normal } = this._calculateRenards(total);
+        const { gold, silver, normal } = this.#calculateRenards(total);
 
         if (this.isFirstRender) {
-            const goldHTML = this._createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
-            const silverHTML = this._createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
-            const normalHTML = this._createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
+            const goldHTML = this.#createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
+            const silverHTML = this.#createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
+            const normalHTML = this.#createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
 
             this.shadowRoot.innerHTML = `
                 <style>
@@ -133,7 +136,7 @@ class RenardCounter extends HTMLElement {
         }
     }
 
-    _animateTransform(fromId, toId, particleType) {
+    #animateTransform(fromId, toId, particleType) {
         const fromContainer = this.shadowRoot.getElementById(fromId);
         const toContainer = this.shadowRoot.getElementById(toId);
         if (!fromContainer || !toContainer) return;
