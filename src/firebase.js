@@ -3,7 +3,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 // Reverting to the previous, stable way of initializing Firestore
 import { getFirestore, enableIndexedDbPersistence, connectFirestoreEmulator } from "firebase/firestore";
-import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // For signInWitHRedirect, we must use the domain where the application is currently hosted
 const authDomain = window.location.hostname;
@@ -27,12 +26,10 @@ const auth = getAuth(app);
 
 // Get the Firestore instance
 const db = getFirestore(app);
-const functions = getFunctions(app, 'europe-west9');
 
 if (import.meta.env.DEV) {
   connectAuthEmulator(auth, "http://localhost:9099");
   connectFirestoreEmulator(db, 'localhost', 8080);
-  connectFunctionsEmulator(functions, "localhost", 5001);
 }
 
 
@@ -46,4 +43,4 @@ enableIndexedDbPersistence(db)
     }
   });
 
-export { auth, db, functions };
+export { auth, db };

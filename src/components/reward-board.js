@@ -100,7 +100,12 @@ class RewardBoard extends HTMLElement {
         if (rewards) {
             const sortedRewards = Object.entries(rewards)
                 .map(([id, reward]) => ({ ...reward, id }))
-                .sort((a, b) => a.cost - b.cost);
+                .sort((a, b) => {
+                    const costDiff = a.cost - b.cost;
+                    if (costDiff !== 0) return costDiff;
+                    // Sort by name secondary to ensure stable order when costs are equal
+                    return a.name.localeCompare(b.name);
+                });
 
             sortedRewards.forEach(reward => {
                 const rewardCard = document.createElement('reward-card');
