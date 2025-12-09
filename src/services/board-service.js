@@ -1,7 +1,7 @@
 // services/board-service.js
 import { userService } from './user-service';
 import { db } from '../firebase';
-import { doc, onSnapshot, updateDoc, runTransaction, serverTimestamp, FieldValue, increment } from 'firebase/firestore';
+import { doc, collection, onSnapshot, updateDoc, runTransaction, serverTimestamp, FieldValue, increment } from 'firebase/firestore';
 
 const LAST_SELECTED_BOARD_KEY = 'lastSelectedBoardId';
 
@@ -11,9 +11,10 @@ class BoardService {
     this.boardSubscribers = [];
     this.tokenSubscribers = [];
     this.unsubscribeFromBoard = () => { };
+    this.unsubscribeFromRewards = () => { };
 
     this.currentBoardData = null;
-    this.lastNewTokenTime = null;
+    this.localLastNewTokenTime = null;
 
     userService.onUserChanged(user => {
       if (user === undefined) return;
@@ -28,7 +29,9 @@ class BoardService {
       } else {
         this.currentBoardId = null;
         this.currentBoardData = null;
+        localStorage.removeItem(LAST_SELECTED_BOARD_KEY);
         this.unsubscribeFromBoard();
+        this.unsubscribeFromRewards();
         this.#notifyBoardSubscribers(null);
       }
     });
@@ -40,37 +43,58 @@ class BoardService {
       localStorage.setItem(LAST_SELECTED_BOARD_KEY, boardId);
 
       this.unsubscribeFromBoard();
+      this.unsubscribeFromRewards();
       this.currentBoardData = null;
       this.localLastNewTokenTime = null;
 
       const boardRef = doc(db, 'boards', this.currentBoardId);
+      const rewardsRef = collection(db, 'boards', this.currentBoardId, 'rewards');
+
+      let boardDocData = null;
+      let rewardsData = {};
+
+      // Helper to merge and notify
+      const updateState = () => {
+        if (!boardDocData) return;
+
+        const boardData = { ...boardDocData, rewards: rewardsData };
+
+        // Calculate available tokens
+        let pendingCost = 0;
+        if (boardData.rewards) {
+          Object.values(boardData.rewards).forEach(r => {
+            if (r.pending) pendingCost += r.cost;
+          });
+        }
+        boardData.availableToken = (boardData.totalToken || 0) - pendingCost;
+
+        this.currentBoardData = boardData;
+        const remoteTimestamp = boardData.lastNewTokenTime?.toMillis();
+
+        this.#notifyBoardSubscribers(boardData);
+
+        if (this.localLastNewTokenTime && remoteTimestamp !== this.localLastNewTokenTime) {
+          this.#notifyTokenSubscribers();
+        }
+
+        this.localLastNewTokenTime = remoteTimestamp;
+      };
+
+      // 1. Subscribe to Board
       this.unsubscribeFromBoard = onSnapshot(boardRef, (doc) => {
         if (doc.exists()) {
-          const boardData = { id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) };
-
-          // Calculate available tokens
-          let pendingCost = 0;
-          if (boardData.rewards) {
-            Object.values(boardData.rewards).forEach(r => {
-              if (r.pending) pendingCost += r.cost;
-            });
-          }
-          boardData.availableToken = (boardData.totalToken || 0) - pendingCost;
-
-          this.currentBoardData = boardData;
-          const remoteTimestamp = boardData.lastNewTokenTime?.toMillis();
-
-          this.#notifyBoardSubscribers(boardData);
-
-          // Only notify subscribers if we have a previous timestamp and the new one is different.
-          // This prevents the animation from firing on the initial load of a board.
-          if (this.localLastNewTokenTime && remoteTimestamp !== this.localLastNewTokenTime) {
-            this.#notifyTokenSubscribers();
-          }
-
-          // Always update to the latest known timestamp from the server.
-          this.localLastNewTokenTime = remoteTimestamp;
+          boardDocData = { id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) };
+          updateState();
         }
+      });
+
+      // 2. Subscribe to Rewards Subcollection
+      this.unsubscribeFromRewards = onSnapshot(rewardsRef, (snapshot) => {
+        rewardsData = {};
+        snapshot.forEach(doc => {
+          rewardsData[doc.id] = { id: doc.id, ...doc.data() };
+        });
+        updateState();
       });
     }
   }
@@ -102,34 +126,42 @@ class BoardService {
       }
     }
 
-    const boardRef = doc(db, 'boards', this.currentBoardId);
-    await updateDoc(boardRef, {
-      [`rewards.${rewardId}.pending`]: newPendingStatus
+    // Update specific reward document in subcollection
+    const rewardRef = doc(db, 'boards', this.currentBoardId, 'rewards', rewardId);
+    await updateDoc(rewardRef, {
+      pending: newPendingStatus
     });
   }
 
   async validateReward(rewardId) {
     if (!this.currentBoardId) return;
     const boardRef = doc(db, 'boards', this.currentBoardId);
+    const rewardRef = doc(db, 'boards', this.currentBoardId, 'rewards', rewardId);
 
     try {
       await runTransaction(db, async (transaction) => {
         const boardDoc = await transaction.get(boardRef);
+        const rewardDoc = await transaction.get(rewardRef);
+
         if (!boardDoc.exists()) throw new Error("Board not found");
+        if (!rewardDoc.exists()) throw new Error("Reward not found");
 
-        const data = boardDoc.data();
-        const reward = data.rewards[rewardId];
+        const boardData = boardDoc.data();
+        const rewardData = rewardDoc.data();
 
-        if (!reward) throw new Error("Reward not found");
-        if (!reward.pending) throw new Error("Reward not pending");
+        if (!rewardData.pending) throw new Error("Reward not pending");
 
         // Check if we have enough BANKED tokens to confirm
-        // (Since pending didn't reduce totalToken, we check totalToken directly)
-        if (data.totalToken < reward.cost) throw new Error("Insufficient tokens");
+        if (boardData.totalToken < rewardData.cost) throw new Error("Insufficient tokens");
 
+        // 1. Update Reward (not pending anymore)
+        transaction.update(rewardRef, {
+          pending: false
+        });
+
+        // 2. Update Board (decrement tokens)
         transaction.update(boardRef, {
-          [`rewards.${rewardId}.pending`]: false,
-          totalToken: increment(-reward.cost)
+          totalToken: increment(-rewardData.cost)
         });
       });
     } catch (e) {

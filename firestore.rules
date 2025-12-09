@@ -34,19 +34,35 @@ service cloud.firestore {
       allow update: if hasAccess() && (
         isParent() || 
         (
-          // Child restrictions:
+          // Child restrictions for Board Document:
           // 1. Cannot change totalToken
           request.resource.data.totalToken == resource.data.totalToken &&
           // 2. Cannot change owner
           request.resource.data.owner == resource.data.owner &&
           // 3. Cannot change label
-          request.resource.data.label == resource.data.label &&
-          // 4. Cannot add/remove rewards (size check)
-          request.resource.data.rewards.size() == resource.data.rewards.size()
+          request.resource.data.label == resource.data.label
         )
       );
 
       allow delete: if isParent() && hasAccess();
+
+      // Rule for the 'rewards' subcollection
+      match /rewards/{rewardId} {
+        allow read: if hasAccess();
+        
+        allow create: if isParent() && hasAccess();
+        
+        allow update: if hasAccess() && (
+            isParent() ||
+            (
+                // Child restrictions for Reward Document:
+                // Can ONLY update the 'pending' field.
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pending'])
+            )
+        );
+
+        allow delete: if isParent() && hasAccess();
+      }
     }
   }
 }

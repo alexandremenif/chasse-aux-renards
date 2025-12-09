@@ -93,29 +93,44 @@ async function seedDatabase() {
   console.log(`Created Firestore document for child: ${child2User.displayName}`);
 
   // --- Create Boards ---
+  // --- Create Boards ---
   const board1Ref = db.collection('boards').doc(child1User.uid);
   await board1Ref.set({
     owner: child1User.displayName,
     totalToken: 25,
-    rewards: {
-      [uuidv4()]: { name: 'Une glace', cost: 10, pending: false, icon: '🍦' },
-      [uuidv4()]: { name: 'Un nouveau jouet', cost: 50, pending: false, icon: '🎁' },
-      [uuidv4()]: { name: 'Regarder un film', cost: 15, pending: true, icon: '🎬' },
-    }
+    // rewards map removed
   });
-  console.log(`Created board for ${child1User.displayName}`);
+
+  // Add rewards as subcollection for board 1
+  const rewards1 = [
+    { name: 'Une glace', cost: 10, pending: false, icon: '🍦' },
+    { name: 'Un nouveau jouet', cost: 50, pending: false, icon: '🎁' },
+    { name: 'Regarder un film', cost: 15, pending: true, icon: '🎬' }
+  ];
+
+  for (const reward of rewards1) {
+    await board1Ref.collection('rewards').add(reward);
+  }
+  console.log(`Created board and rewards for ${child1User.displayName}`);
 
   const board2Ref = db.collection('boards').doc(child2User.uid);
   await board2Ref.set({
     owner: child2User.displayName,
     totalToken: 5,
-    rewards: {
-      [uuidv4()]: { name: 'Aller au parc', cost: 5, pending: false, icon: '🌳' },
-      [uuidv4()]: { name: 'Une heure de jeu vidéo', cost: 20, pending: false, icon: '🎮' },
-      [uuidv4()]: { name: 'Une nouvelle peluche', cost: 15, pending: false, icon: '🧸' },
-    }
+    // rewards map removed
   });
-  console.log(`Created board for ${child2User.displayName}`);
+
+  // Add rewards as subcollection for board 2
+  const rewards2 = [
+    { name: 'Aller au parc', cost: 5, pending: false, icon: '🌳' },
+    { name: 'Une heure de jeu vidéo', cost: 20, pending: false, icon: '🎮' },
+    { name: 'Une nouvelle peluche', cost: 15, pending: false, icon: '🧸' }
+  ];
+
+  for (const reward of rewards2) {
+    await board2Ref.collection('rewards').add(reward);
+  }
+  console.log(`Created board and rewards for ${child2User.displayName}`);
 
   console.log('Database seeding completed successfully!');
 }
