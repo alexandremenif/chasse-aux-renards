@@ -1,5 +1,5 @@
-// src/components/login-page.js
 import { userService } from '../services/user-service';
+import './m3/m3-button.js';
 
 class LoginPage extends HTMLElement {
   constructor() {
@@ -17,53 +17,35 @@ class LoginPage extends HTMLElement {
         }
 
         h1 {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin: 0;
+            font: var(--md-sys-typescale-display-medium);
+            color: var(--md-sys-color-primary);
+            margin-bottom: var(--md-sys-spacing-16);
         }
 
         p {
-            font-size: 1.25rem;
-            color: var(--text-color-light);
-            margin-bottom: 2rem;
-        }
-        
-        .btn {
-            /* font-family is inherited from body */
-            font-weight: 700;
-            font-size: 1rem;
-            border: 2px solid transparent;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease-in-out;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: var(--text-color-on-primary);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-color-hover);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            margin: 0;
+            font: var(--md-sys-typescale-body-large);
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: var(--md-sys-spacing-32);
         }
       </style>
       
       <h1>La Chasse aux Renards</h1>
       <p>Connectez-vous pour commencer à suivre vos récompenses.</p>
-      <button class="btn btn-primary">Se connecter avec Google</button>
+      <m3-button variant="filled" label="Se connecter avec Google"></m3-button>
     `;
   }
 
   connectedCallback() {
-    this.shadowRoot.querySelector('button').addEventListener('click', () => {
-      userService.signIn();
-    });
+    // Defer event listener attachment to ensure shadow DOM is ready
+    // or just attach to the element if available immediately (which it is in innerHTML)
+    const btn = this.shadowRoot.querySelector('m3-button');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        userService.signIn();
+      });
+    }
   }
 }
 
