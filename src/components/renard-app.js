@@ -1,18 +1,22 @@
-
 import { userService } from '../services/user-service.js';
+import { boardService } from '../services/board-service.js';
+import { M3Breakpoints } from './m3/m3-breakpoints.js';
 import './login-page.js';
 import './app-bar.js';
 import './reward-board.js';
-import './add-renard-button.js';
 import './confirmation-modal.js';
-import './board-selection-modal.js';
+
+
+// M3 Components
+import './m3/m3-fab.js';
+import './m3/m3-app-bar.js';
 
 class RenardApp extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
         this.user = undefined; // Initial state: unknown
-        this._unsubscribeUser = () => {};
+        this._unsubscribeUser = () => { };
     }
 
     connectedCallback() {
@@ -30,13 +34,7 @@ class RenardApp extends HTMLElement {
     }
 
     _attachEventListeners() {
-        this.shadowRoot.addEventListener('show-board-selection-modal', (event) => {
-            const modal = this.shadowRoot.querySelector('board-selection-modal');
-            if (modal) {
-                modal.setAttribute('selected-board-id', event.detail.boardId);
-                modal.setAttribute('visible', 'true');
-            }
-        });
+
 
         this.shadowRoot.addEventListener('show-confirmation-modal', (event) => {
             const modal = this.shadowRoot.querySelector('confirmation-modal');
@@ -47,35 +45,91 @@ class RenardApp extends HTMLElement {
                 modal.setAttribute('visible', 'true');
             }
         });
+
+        if (this.user && this.user.isParent) {
+            const fab = this.shadowRoot.querySelector('m3-fab');
+            if (fab) {
+                fab.addEventListener('click', () => {
+                    boardService.addToken();
+                });
+            }
+        }
     }
 
     _render() {
-
         if (this.user === undefined) {
-            // Auth state is unknown, render nothing.
             this.shadowRoot.innerHTML = '';
             return;
         }
 
         if (this.user === null) {
-            // User is known to be logged out.
             this.shadowRoot.innerHTML = `<login-page></login-page>`;
         } else {
-            // User is logged in.
+            const isParent = this.user.isParent;
+
+            // New M3 Layout
             this.shadowRoot.innerHTML = `
                 <style>
-                    add-renard-button {
+                    :host {
+                        display: block;
+                        background-color: var(--md-sys-color-surface-container); /* Matched to App Bar */
+                        min-height: 100vh;
+                        padding-bottom: var(--md-sys-spacing-96); /* Space for FAB */
+                    }
+                    
+                    /* Utility for Centered Content */
+                    .content-container {
+                        width: 100%;
+                        margin: 0 auto;
+                        padding: var(--md-sys-spacing-16);
+                        box-sizing: border-box;
+                    }
+
+                    @media (min-width: ${M3Breakpoints.EXPANDED}) {
+                        .content-container {
+                            max-width: ${M3Breakpoints.EXPANDED}; /* Expanded Start */
+                            /* Removed: background, radius, shadow, margin-top */
+                        }
+                    }
+
+                    @media (min-width: ${M3Breakpoints.LARGE}) {
+                        .content-container {
+                            max-width: ${M3Breakpoints.LARGE}; /* Large Start */
+                        }
+                    }
+                    
+                    m3-fab {
                         position: fixed;
-                        bottom: 2rem;
-                        right: 2rem;
-                        z-index: 50;
+                        bottom: var(--md-sys-spacing-24);
+                        right: var(--md-sys-spacing-24);
+                        z-index: var(--md-sys-z-index-fab);
+                    }
+
+                    /* App Bar Wrapper - Full Width */
+                    .app-bar-wrapper {
+                        position: sticky;
+                        top: 0;
+                        z-index: var(--md-sys-z-index-app-bar);
+                        background-color: var(--md-sys-color-surface-container); /* Or surface */
+                        width: 100%;
                     }
                 </style>
-                <app-bar></app-bar>
-                <reward-board></reward-board>
-                <add-renard-button id="add-renard-btn"></add-renard-button>
+
+                <!-- Full Width App Bar -->
+                <div class="app-bar-wrapper">
+                    <app-bar></app-bar>
+                </div>
+            
+                <!-- Centered Content -->
+                <div class="content-container">
+                    <reward-board></reward-board>
+                </div>
+
+                <!-- FAB triggers the add token action (Parent Only) -->
+                ${isParent ? `<m3-fab id="fab-add" size="medium"></m3-fab>` : ''}
+
+                <!-- Modals -->
                 <confirmation-modal id="confirmation-modal"></confirmation-modal>
-                <board-selection-modal></board-selection-modal>
             `;
         }
     }

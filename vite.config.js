@@ -12,8 +12,8 @@ export default defineConfig({
         description: "Une application ludique pour suivre les récompenses des enfants.",
         start_url: "/",
         display: "standalone",
-        background_color: "#FFFBEB",
-        theme_color: "#F97316",
+        background_color: "#FFFCFA",
+        theme_color: "#df5f00",
       },
       pwaAssets: {
         image: 'public/renard-icon.svg',

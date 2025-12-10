@@ -7,8 +7,6 @@ import { getFirestore, enableIndexedDbPersistence, connectFirestoreEmulator } fr
 // For signInWitHRedirect, we must use the domain where the application is currently hosted
 const authDomain = window.location.hostname;
 
-console.log('authDomain:', authDomain)
-
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

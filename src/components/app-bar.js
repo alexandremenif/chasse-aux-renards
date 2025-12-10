@@ -2,26 +2,30 @@
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import './user-info.js';
+import './m3/m3-icon.js';
 import './board-selector.js';
 
 class AppBar extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.unsubscribeBoard = () => {};
+        this.unsubscribeBoard = () => { };
+        this.currentBoardName = '...';
+        this.currentBoardId = null;
+        this.isParent = false;
     }
 
     connectedCallback() {
         const currentUser = userService.getCurrentUser();
-        this._render(currentUser);
+        this.isParent = currentUser && currentUser.isParent;
+
+        this._render();
 
         this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
-                const boardSelector = this.shadowRoot.querySelector('board-selector');
-                if (boardSelector) {
-                    boardSelector.setAttribute('board-name', boardData.owner);
-                    boardSelector.setAttribute('board-id', boardData.id);
-                }
+                this.currentBoardName = boardData.owner;
+                this.currentBoardId = boardData.id;
+                this._updateBoardSelector();
             }
         });
     }
@@ -30,68 +34,64 @@ class AppBar extends HTMLElement {
         this.unsubscribeBoard();
     }
 
-    _render(user) {
+    _updateBoardSelector() {
+        const selector = this.shadowRoot.querySelector('board-selector');
+        if (selector) {
+            selector.setAttribute('board-name', this.currentBoardName);
+            selector.setAttribute('board-id', this.currentBoardId || '');
+        }
+    }
+
+    _render() {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
-                    display: block;
-                    width: 100%;
-                    padding: 1rem;
-                    box-sizing: border-box;
-                }
-                header {
-                    display: grid;
-                    grid-template-columns: 1fr auto 1fr;
-                    align-items: center;
-                    gap: 1rem; /* Add some space between columns */
-                }
-                
-                .center-content {
-                    grid-column: 2;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.5rem;
+                   display: block;
+                   width: 100%;
                 }
 
-                .user-info-container {
-                    grid-column: 3;
-                    justify-self: end;
-                }
-
+                /* Title Styles */
                 h1 {
-                    font-size: 1.5rem;
-                    font-weight: 900;
-                    color: #D97706; /* text-amber-600 */
-                    margin: 0;
-                    white-space: nowrap;
-                    text-align: center;
+                   margin: 0;
+                   font: var(--md-sys-typescale-title-large);
+                   color: var(--md-sys-color-on-surface);
+                   white-space: nowrap;
+                   overflow: hidden;
+                   text-overflow: ellipsis;
                 }
 
-                /* On smaller screens, we can adjust the title size if needed */
-                @media (max-width: 768px) {
-                    h1 {
-                        font-size: 1.25rem;
-                    }
-                    header {
-                        gap: 0.5rem;
+                /* Mobile: Hide Title ONLY if we have a selector to show (Parents) */
+                @media (max-width: 600px) {
+                    h1.hide-on-mobile {
+                        display: none;
                     }
                 }
             </style>
-            <header>
-                <div class="center-content">
-                    <h1>La Chasse aux Renards</h1>
-                    <div class="board-selector-container"></div>
+            <m3-app-bar>
+                <div slot="start">
+                   <!-- Title (Hidden on Mobile ONLY if parent) -->
+                   <h1 class="${this.isParent ? 'hide-on-mobile' : ''}">La Chasse aux Renards</h1>
                 </div>
-                <div class="user-info-container">
+
+                <div slot="center">
+                    ${this.isParent
+                ? `
+                        <!-- Board Selector: Centers on Desktop, Shifts Left on Mobile -->
+                        <board-selector 
+                            id="board-switcher" 
+                            board-name="${this.currentBoardName}"
+                            board-id="${this.currentBoardId}">
+                        </board-selector>
+                        `
+                : ``
+            }
+                </div>
+
+                <div slot="end">
                     <user-info></user-info>
                 </div>
-            </header>
+            </m3-app-bar>
         `;
-
-        if (user && user.isParent) {
-            this.shadowRoot.querySelector('.board-selector-container').innerHTML = '<board-selector></board-selector>';
-        }
     }
 }
 

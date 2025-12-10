@@ -1,31 +1,264 @@
 :root {
-    --primary-color: #D97706; /* amber-600 */
-    --primary-color-hover: #B45309; /* amber-700 */
-    
-    --text-color-dark: #1E293B; /* slate-800 */
-    --text-color-light: #475569; /* slate-600 */
-    --text-color-on-primary: white;
-    
-    --border-color: #CBD5E1; /* slate-300 */
-    --border-color-light: #E5E7EB; /* slate-200 */
-    
-    --surface-background: white;
+    -webkit-tap-highlight-color: transparent;
+
+    /* Light Theme */
+    --md-sys-color-primary-fixed: #ffdbcb;
+    --md-sys-color-primary-fixed-dim: #ffb692;
+    --md-sys-color-on-primary-fixed: #341100;
+    --md-sys-color-on-primary-fixed-variant: #793000;
+    --md-sys-color-secondary-fixed: #dfe3e9;
+    --md-sys-color-secondary-fixed-dim: #c3c7cd;
+    --md-sys-color-on-secondary-fixed: #171c20;
+    --md-sys-color-on-secondary-fixed-variant: #43474c;
+    --md-sys-color-tertiary-fixed: #ffe16d;
+    --md-sys-color-tertiary-fixed-dim: #e9c400;
+    --md-sys-color-on-tertiary-fixed: #221b00;
+    --md-sys-color-on-tertiary-fixed-variant: #544600;
+    --md-sys-color-shadow: #000000;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-primary: #df5f00;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #ffdbcb;
+    --md-sys-color-on-primary-container: #341100;
+    --md-sys-color-secondary: #5a5f64;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #dfe3e9;
+    --md-sys-color-on-secondary-container: #171c20;
+    --md-sys-color-tertiary: #705d00;
+    --md-sys-color-on-tertiary: #ffffff;
+    --md-sys-color-tertiary-container: #ffe16d;
+    --md-sys-color-on-tertiary-container: #221b00;
+    --md-sys-color-error: #b4271f;
+    --md-sys-color-on-error: #ffffff;
+    --md-sys-color-error-container: #ffdad5;
+    --md-sys-color-on-error-container: #410001;
+    --md-sys-color-background: #FFFFFF;
+    --md-sys-color-on-background: #201a18;
+    --md-sys-color-surface: #FFFFFF;
+    --md-sys-color-on-surface: #201a18;
+    --md-sys-color-surface-variant: #f4ded5;
+    --md-sys-color-on-surface-variant: #52443d;
+    --md-sys-color-outline: #85736c;
+    --md-sys-color-outline-variant: #d7c2b9;
+    --md-sys-color-inverse-surface: #362f2c;
+    --md-sys-color-inverse-on-surface: #fbeee9;
+    --md-sys-color-inverse-primary: #ffb692;
+    --md-sys-color-surface-dim: #e4d7d3;
+    --md-sys-color-surface-bright: #fff8f6;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-surface-container-low: #FFFFFF;
+    --md-sys-color-surface-container: #FFFCFA;
+    --md-sys-color-surface-container-high: #FFF9F6;
+    --md-sys-color-surface-container-highest: #FDF7F5;
+    --md-sys-color-surface-tint: #df5f00;
+
+    /* Renard Token Colors */
+    --renard-token-primary-fill: #df5f00;
+    --renard-token-primary-carved: #9c4000;
+    --renard-token-silver-fill: #B0B5BA;
+    --renard-token-silver-carved: #7f8589;
+    --renard-token-gold-fill: #FFC400;
+    --renard-token-gold-carved: #ba8f00;
+
+    /* RGB Variants for Opacity Layers (Legacy Support / Recalculated if needed, otherwise removed) */
+    /* M3 components use opacity layers on CURRENTCOLOR usually. Legacy RGBs removed. */
+
+    /* Typography (Inter) */
+    --md-sys-typescale-display-large: 400 57px/64px 'Inter', sans-serif;
+    --md-sys-typescale-display-medium: 400 45px/52px 'Inter', sans-serif;
+    --md-sys-typescale-display-small: 400 36px/44px 'Inter', sans-serif;
+
+    --md-sys-typescale-headline-large: 400 32px/40px 'Inter', sans-serif;
+    --md-sys-typescale-headline-medium: 400 28px/36px 'Inter', sans-serif;
+    --md-sys-typescale-headline-small: 400 24px/32px 'Inter', sans-serif;
+
+    --md-sys-typescale-title-large: 400 22px/28px 'Inter', sans-serif;
+    --md-sys-typescale-title-medium: 500 16px/24px 'Inter', sans-serif;
+    --md-sys-typescale-title-small: 500 14px/20px 'Inter', sans-serif;
+
+    --md-sys-typescale-label-large: 500 14px/20px 'Inter', sans-serif;
+    --md-sys-typescale-label-medium: 500 12px/16px 'Inter', sans-serif;
+    --md-sys-typescale-label-small: 500 11px/16px 'Inter', sans-serif;
+
+    --md-sys-typescale-body-large: 400 16px/24px 'Inter', sans-serif;
+    --md-sys-typescale-body-medium: 400 14px/20px 'Inter', sans-serif;
+    --md-sys-typescale-body-small: 400 12px/16px 'Inter', sans-serif;
+
+    /* Elevation */
+    --md-sys-elevation-0: none;
+    --md-sys-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-3: 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-4: 0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-5: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+
+    /* --- Material 3 Elevation Surface Tint Opacity Modules --- */
+    --md-sys-elevation-tint-level-0: 0;
+    --md-sys-elevation-tint-level-1: 0.05;
+    --md-sys-elevation-tint-level-2: 0.08;
+    --md-sys-elevation-tint-level-3: 0.11;
+    --md-sys-elevation-tint-level-4: 0.12;
+    --md-sys-elevation-tint-level-5: 0.14;
+
+    /* --- Material 3 Spacing Tokens --- */
+    --md-sys-spacing-0: 0px;
+    --md-sys-spacing-4: 4px;
+    --md-sys-spacing-8: 8px;
+    --md-sys-spacing-12: 12px;
+    --md-sys-spacing-16: 16px;
+    --md-sys-spacing-24: 24px;
+    --md-sys-spacing-32: 32px;
+    --md-sys-spacing-40: 40px;
+    --md-sys-spacing-48: 48px;
+    --md-sys-spacing-56: 56px;
+    --md-sys-spacing-64: 64px;
+    --md-sys-spacing-72: 72px;
+    --md-sys-spacing-80: 80px;
+    --md-sys-spacing-96: 96px;
+
+    /* --- Material 3 Shape Tokens --- */
+    --md-sys-shape-corner-extra-small: 4px;
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    --md-sys-shape-corner-full: 9999px;
+
+    /* --- Material 3 Motion Tokens --- */
+    --md-sys-motion-duration-short: 200ms;
+    --md-sys-motion-duration-medium: 400ms;
+    --md-sys-motion-duration-long: 600ms;
+
+    --md-sys-motion-easing-standard: cubic-bezier(0.2, 0.0, 0, 1.0);
+    --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+    /* NEW: Utility Scale Animation (Standardized) */
+    --md-sys-motion-keyframes-scale-in: scaleIn;
+
+    /* --- Material 3 State Layer Opacities --- */
+    --md-sys-state-hover-state-layer-opacity: 0.08;
+    --md-sys-state-focus-state-layer-opacity: 0.12;
+    --md-sys-state-pressed-state-layer-opacity: 0.12;
+    --md-sys-state-dragged-state-layer-opacity: 0.16;
+
+    /* Semantic State Colors (optional but good for consistency) */
+    --md-sys-state-primary-hover: color-mix(in srgb, var(--md-sys-color-primary) 100%, black var(--md-sys-state-hover-state-layer-opacity));
+    /* Note: color-mix is modern, but let's stick to using opacity layers in components for now to match M3 pattern.
+       However, we can define the base colors for layers if needed. */
+
+    /* --- Material 3 Z-Index Tokens (NEW) --- */
+    --md-sys-z-index-scrim: 30;
+    --md-sys-z-index-fab: 50;
+    --md-sys-z-index-dialog: 80;
+    --md-sys-z-index-app-bar: 100;
+    --md-sys-z-index-tooltip: 120;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Dark Theme */
+        --md-sys-color-primary-fixed: #ffdbcb;
+        --md-sys-color-primary-fixed-dim: #ffb692;
+        --md-sys-color-on-primary-fixed: #341100;
+        --md-sys-color-on-primary-fixed-variant: #793000;
+        --md-sys-color-secondary-fixed: #dfe3e9;
+        --md-sys-color-secondary-fixed-dim: #c3c7cd;
+        --md-sys-color-on-secondary-fixed: #171c20;
+        --md-sys-color-on-secondary-fixed-variant: #43474c;
+        --md-sys-color-tertiary-fixed: #ffe16d;
+        --md-sys-color-tertiary-fixed-dim: #e9c400;
+        --md-sys-color-on-tertiary-fixed: #221b00;
+        --md-sys-color-on-tertiary-fixed-variant: #544600;
+        --md-sys-color-shadow: #000000;
+        --md-sys-color-scrim: #000000;
+        --md-sys-color-primary: #ffb692;
+        --md-sys-color-on-primary: #562000;
+        --md-sys-color-primary-container: #793000;
+        --md-sys-color-on-primary-container: #ffdbcb;
+        --md-sys-color-secondary: #c3c7cd;
+        --md-sys-color-on-secondary: #2c3136;
+        --md-sys-color-secondary-container: #43474c;
+        --md-sys-color-on-secondary-container: #dfe3e9;
+        --md-sys-color-tertiary: #e9c400;
+        --md-sys-color-on-tertiary: #3a3000;
+        --md-sys-color-tertiary-container: #544600;
+        --md-sys-color-on-tertiary-container: #ffe16d;
+        --md-sys-color-error: #ffb4aa;
+        --md-sys-color-on-error: #690003;
+        --md-sys-color-error-container: #910809;
+        --md-sys-color-on-error-container: #ffdad5;
+        --md-sys-color-background: #181210;
+        --md-sys-color-on-background: #ede0db;
+        --md-sys-color-surface: #181210;
+        --md-sys-color-on-surface: #ede0db;
+        --md-sys-color-surface-variant: #52443d;
+        --md-sys-color-on-surface-variant: #d7c2b9;
+        --md-sys-color-outline: #a08d85;
+        --md-sys-color-outline-variant: #52443d;
+        --md-sys-color-inverse-surface: #ede0db;
+        --md-sys-color-inverse-on-surface: #362f2c;
+        --md-sys-color-inverse-primary: #9f4200;
+        --md-sys-color-surface-dim: #181210;
+        --md-sys-color-surface-bright: #3f3835;
+        --md-sys-color-surface-container-lowest: #120d0b;
+        --md-sys-color-surface-container-low: #201a18;
+        --md-sys-color-surface-container: #241e1c;
+        --md-sys-color-surface-container-high: #2f2926;
+        --md-sys-color-surface-container-highest: #3a3330;
+        --md-sys-color-surface-tint: #ffb692;
+    }
+}
+
+/* Global Focus Ring Utility & Tokens */
+:root {
+    --md-sys-state-focus-ring-width: 3px;
+    --md-sys-state-focus-ring-offset: 2px;
+    --md-sys-state-focus-ring-color: var(--md-sys-color-secondary);
+    /* Updated to Secondary for contrast */
+}
+
+/* Standardized Keyframes (Global Context) */
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.focus-ring {
+    outline: var(--md-sys-state-focus-ring-width) solid var(--md-sys-state-focus-ring-color);
+    outline-offset: var(--md-sys-state-focus-ring-offset);
+}
+
+.focus-ring:focus-visible {
+    outline: var(--md-sys-state-focus-ring-width) solid var(--md-sys-state-focus-ring-color);
+    outline-offset: var(--md-sys-state-focus-ring-offset);
 }
 
 body {
-    font-family: 'Nunito', sans-serif;
-    background-color: #F0F4F8;
-    color: var(--text-color-dark);
+    font-family: 'Inter', sans-serif;
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+    margin: 0;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    margin: 0; /* Reset default margin */
 }
 
 #app {
-    display: block; /* Custom elements are inline by default, make it a block container */
+    display: block;
 }
 
-/* Screen-reader only utility */
+/* Material Icons Class */
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+}
+
+/* Screen Reader Only Utility */
 .sr-only {
     position: absolute;
     width: 1px;

@@ -1,5 +1,7 @@
-// components/renard-counter.js
 import { boardService } from '../services/board-service'
+import './m3/m3-card.js';
+import './renard-icon.js';
+import { M3Breakpoints } from './m3/m3-breakpoints.js';
 
 class RenardCounter extends HTMLElement {
     constructor() {
@@ -36,6 +38,15 @@ class RenardCounter extends HTMLElement {
         this.render();
     }
 
+    #getMotionDuration(tokenName) {
+        // Helper to get duration in ms from CSS variable
+        const style = getComputedStyle(document.body);
+        const val = style.getPropertyValue(tokenName).trim();
+        if (val.endsWith('ms')) return parseInt(val, 10);
+        if (val.endsWith('s')) return parseFloat(val) * 1000;
+        return 0;
+    }
+
     #playAnimation() {
         if (this.total <= this.previousTotal) return;
 
@@ -45,7 +56,9 @@ class RenardCounter extends HTMLElement {
         const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
         if (normalCounterEl) {
             normalCounterEl.classList.add('counter-pulse');
-            setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), 400);
+            // Use 'medium' duration for pulse removal
+            const duration = this.#getMotionDuration('--md-sys-motion-duration-medium') || 400;
+            setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), duration);
         }
 
         // Normal to Silver (includes the case where we go from 9 to 0)
@@ -66,10 +79,10 @@ class RenardCounter extends HTMLElement {
         return { gold, silver, normal };
     }
 
-    #createCounterBlockHTML(id, label, count, iconType, colors) {
+    #createCounterBlockHTML(id, label, count, iconType, classSuffix) {
         return `
-            <div id="${id}" class="counter-block" title="${label}" style="background-color: ${colors.bg}; border-color: ${colors.border};">
-                <h3 class="counter-label" style="color: ${colors.text};">
+            <div id="${id}" class="counter-block ${classSuffix}" title="${label}">
+                <h3 class="counter-label">
                     ${label}
                 </h3>
                 <div class="counter-display">
@@ -86,50 +99,140 @@ class RenardCounter extends HTMLElement {
         const { gold, silver, normal } = this.#calculateRenards(total);
 
         if (this.isFirstRender) {
-            const goldHTML = this.#createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', { bg: '#FEFCE8', border: '#FDE68A', text: '#CA8A04' });
-            const silverHTML = this.#createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569' });
-            const normalHTML = this.#createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', { bg: '#FFF7ED', border: '#FED7AA', text: '#EA580C' });
+            const goldHTML = this.#createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', 'tier-gold');
+            const silverHTML = this.#createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', 'tier-silver');
+            const normalHTML = this.#createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', 'tier-normal');
 
             this.shadowRoot.innerHTML = `
                 <style>
-                    :host { font-family: inherit; }
+                    :host { font-family: inherit; display: block; margin-bottom: var(--md-sys-spacing-24); }
+                    
+                    h2 {
+                        font: var(--md-sys-typescale-title-medium);
+                        color: var(--md-sys-color-on-surface-variant);
+                        margin: 0 0 var(--md-sys-spacing-16) 0;
+                    }
+
                     .counter-grid { 
                         display: grid; 
                         grid-template-columns: repeat(3, 1fr); 
-                        gap: 1rem; 
+                        gap: var(--md-sys-spacing-16); 
                         text-align: center; 
+                        justify-items: stretch;
+                        width: 100%;
                     }
-                    .counter-block { padding: 1rem; border-radius: 0.75rem; border-width: 2px; }
-                    .counter-label { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-                    .counter-display { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-                    .counter-value { font-size: 2.25rem; font-weight: 900; }
-                    .counter-pulse { animation: pulse-anim 0.4s ease-out; }
+                    
+                    .counter-block { 
+                        padding: var(--md-sys-spacing-16); 
+                        border-radius: var(--md-sys-shape-corner-large); 
+                        /* Uses specific tier colors defined in style.css */
+                        background-color: var(--tier-bg);
+                        color: var(--tier-text); /* Derived or manual */
+                    }
+                    
+                    /* Mapping Tiers to CSS Variables */
+                    .tier-gold {
+                        /* Lighter than container for better contrast with dark text */
+                        --tier-bg: color-mix(in srgb, var(--md-sys-color-tertiary-container), white 40%);
+                        color: var(--md-sys-color-on-tertiary-container);
+                    }
+                    .tier-silver {
+                         /* Lighter than container for better contrast with dark text */
+                         --tier-bg: color-mix(in srgb, var(--md-sys-color-secondary-container), white 40%);
+                         color: var(--md-sys-color-on-secondary-container);
+                    }
+                    .tier-normal {
+                        /* Darkened slightly (20% white instead of 40%) */
+                        --tier-bg: color-mix(in srgb, var(--md-sys-color-primary-container), white 20%);
+                        color: var(--md-sys-color-on-primary-container);
+                    }
+
+                    @media (prefers-color-scheme: dark) {
+                        .tier-gold {
+                            --tier-bg: var(--md-sys-color-tertiary-container);
+                            color: var(--md-sys-color-on-tertiary-container);
+                        }
+                        .tier-silver {
+                            --tier-bg: var(--md-sys-color-secondary-container);
+                            color: var(--md-sys-color-on-secondary-container);
+                        }
+                        .tier-normal {
+                            --tier-bg: var(--md-sys-color-primary-container);
+                            color: var(--md-sys-color-on-primary-container);
+                        }
+                    }
+
+                    .counter-label { 
+                        font: var(--md-sys-typescale-title-small);
+                        margin: 0 0 var(--md-sys-spacing-8) 0;
+                    }
+                    
+                    .counter-display { 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        gap: var(--md-sys-spacing-8); 
+                    }
+                    
+                    .counter-value { 
+                        font: var(--md-sys-typescale-display-small);
+                        font-weight: 700;
+                        font-variant-numeric: tabular-nums;
+                        color: var(--md-sys-color-on-surface); /* Blackish */
+                    }
+                    
+                    .counter-pulse { animation: pulse-anim var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized); }
+                    
                     @keyframes pulse-anim {
                         0% { transform: scale(1); }
-                        50% { transform: scale(1.25); color: #F97316; }
+                        50% { transform: scale(1.25); color: var(--md-sys-color-primary); }
                         100% { transform: scale(1); }
                     }
 
-                    @media (max-width: 640px) {
-                        .counter-label {
-                            display: none;
+
+
+                        @media (max-width: ${M3Breakpoints.MEDIUM}) {
+                            .counter-grid {
+                                gap: var(--md-sys-spacing-8);
+                            }
+                            .counter-label {
+                                display: none;
+                            }
+                            .counter-block {
+                                padding: var(--md-sys-spacing-8);
+                            }
+                            .counter-display {
+                                flex-direction: column;
+                                gap: var(--md-sys-spacing-4);
+                            }
+                            .counter-value {
+                                font: var(--md-sys-typescale-headline-small); /* Smaller on mobile (24px/32px matches old 24px size but with correct line-height) */
+                            }
                         }
-                        .counter-display {
-                            flex-direction: column;
-                        }
-                    }
-                </style>
-                <div class="counter-grid">
-                    ${goldHTML}
-                    ${silverHTML}
-                    ${normalHTML}
-                </div>
-            `;
+                    </style>
+                    <m3-card variant="elevated">
+                        <h2>Ton Trésor Disponible</h2>
+                        <div class="counter-grid">
+                            ${goldHTML}
+                            ${silverHTML}
+                            ${normalHTML}
+                        </div>
+                    </m3-card>
+                `;
+
             this.isFirstRender = false;
         } else {
             const goldValue = this.shadowRoot.querySelector('#gold-container .counter-value');
             const silverValue = this.shadowRoot.querySelector('#silver-container .counter-value');
             const normalValue = this.shadowRoot.querySelector('#normal-container .counter-value');
+
+            // Safety check: if elements are missing (e.g. shadowRoot wiped), re-render? 
+            // Better: trust isFirstRender flag unless we suspect it getting out of sync.
+            if (!goldValue) {
+                this.isFirstRender = true;
+                this.render();
+                return;
+            }
             if (goldValue) goldValue.textContent = gold;
             if (silverValue) silverValue.textContent = silver;
             if (normalValue) normalValue.textContent = normal;
@@ -144,15 +247,19 @@ class RenardCounter extends HTMLElement {
         const fromRect = fromContainer.getBoundingClientRect();
         const toRect = toContainer.getBoundingClientRect();
 
+        // Use 'extra-long' duration (2x long) for the coin shower effect to create delight.
+        const longDuration = this.#getMotionDuration('--md-sys-motion-duration-long') || 600;
+        const animDuration = longDuration * 2; 
+
         for (let i = 0; i < 10; i++) {
             const particle = document.createElement('renard-icon');
             particle.setAttribute('type', particleType);
             particle.setAttribute('size', '40px');
             Object.assign(particle.style, {
-                position: 'fixed', zIndex: '100',
+                position: 'fixed', zIndex: 'var(--md-sys-z-index-tooltip)',
                 left: `${fromRect.left + fromRect.width / 2 + (Math.random() - 0.5) * 40 - 20}px`,
                 top: `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40 - 20}px`,
-                transition: 'all 1.2s ease-in-out', pointerEvents: 'none'
+                transition: `all ${animDuration}ms ease-in-out`, pointerEvents: 'none'
             });
 
             document.body.appendChild(particle);
@@ -166,7 +273,7 @@ class RenardCounter extends HTMLElement {
                 }, 50);
             });
 
-            setTimeout(() => particle.remove(), 1600);
+            setTimeout(() => particle.remove(), animDuration + 100);
         }
     }
 }

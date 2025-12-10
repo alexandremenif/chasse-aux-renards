@@ -1,173 +1,226 @@
+
 // components/reward-card.js
 import { userService } from '../services/user-service.js';
-import { boardService } from '../services/board-service.js';
+import { M3Breakpoints } from './m3/m3-breakpoints.js';
 import './renard-icon.js';
+import './m3/m3-card.js';
+import './m3/m3-icon.js';
+import './m3/m3-icon-button.js';
 
 class RewardCard extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.isParent = false;
-    }
-
-    connectedCallback() {
-        this.isParent = userService.getCurrentUser().isParent;
-        this.render();
-        this._attachEventListeners();
     }
 
     static get observedAttributes() {
-        return ['id', 'name', 'cost', 'icon', 'is-pending', 'can-afford'];
+        return ['label', 'cost', 'emoji', 'available-token', 'pending'];
+    }
+
+    connectedCallback() {
+        this.render();
     }
 
     attributeChangedCallback() {
         this.render();
-        this._attachEventListeners();
     }
 
     render() {
-        const name = this.getAttribute('name') || '';
-        const cost = this.getAttribute('cost') || '0';
-        const icon = this.getAttribute('icon') || '';
-        const isPending = this.getAttribute('is-pending') === 'true';
-        const canAfford = this.getAttribute('can-afford') === 'true';
-        const isParent = this.isParent;
+        const label = this.getAttribute('label') || 'Récompense';
+        const cost = parseInt(this.getAttribute('cost') || '0', 10);
+        const emoji = this.getAttribute('emoji') || '🎁';
+        const availableToken = parseInt(this.getAttribute('available-token') || '0', 10);
+        const isPending = this.hasAttribute('pending');
 
-        let stateClass = '';
-        if (isPending) {
-            stateClass = 'card--pending';
-        } else if (canAfford) {
-            stateClass = 'card--affordable';
-        } else {
-            stateClass = 'card--unaffordable';
+        const canAfford = availableToken >= cost;
+
+        // 1. First Rendering (Initialization)
+        if (!this.shadowRoot.getElementById('container')) {
+            this.shadowRoot.innerHTML = `
+                <style>
+                    :host { display: block; height: 100%; position: relative; }
+
+                    m3-card {
+                        height: 100%;
+                        /* Padding handled by m3-card default (16px / md-sys-spacing-16) */
+                    }
+                    
+                    /* Internal Layout Wrapper to replace the old div behavior */
+                    .card-content {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: var(--md-sys-spacing-16);
+                        height: 100%;
+                        box-sizing: border-box;
+                        /* Padding removed to avoid double padding with m3-card container */
+                    }
+
+                    @media (min-width: ${M3Breakpoints.MEDIUM}) {
+                        .card-content {
+                            flex-direction: column;
+                            justify-content: center;
+                            text-align: center;
+                            gap: var(--md-sys-spacing-8);
+                            aspect-ratio: 1 / 1;
+                        }
+                    }
+
+                    /* State Styling via ::part */
+                    
+                    /* Locked State */
+                    :host(.state-locked) m3-card {
+                        opacity: 0.6;
+                        pointer-events: none;
+                    }
+
+                    /* Pending State */
+                    :host(.state-pending) m3-card::part(card) {
+                        background-color: var(--md-sys-color-surface-container); 
+                        border: 2px solid var(--renard-token-gold-fill); 
+                    }
+
+                    .emoji {
+                        /* font-size: 30px; -> Headline Large */
+                        font: var(--md-sys-typescale-headline-large);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        line-height: 1;
+                    }
+                    @media (min-width: ${M3Breakpoints.MEDIUM}) { 
+                        /* .emoji { font-size: 48px; } -> Display Medium */
+                        .emoji { font: var(--md-sys-typescale-display-medium); } 
+                    }
+                    
+                    .info {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0;
+                    }
+                    
+                    @media (min-width: ${M3Breakpoints.MEDIUM}) {
+                        .info { align-items: center; justify-content: center; }
+                    }
+
+                    .label {
+                        margin: 0;
+                        font: var(--md-sys-typescale-title-medium);
+                        color: var(--md-sys-color-on-surface);
+                        line-height: 1.75rem;
+                    }
+
+                    .cost-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: var(--md-sys-spacing-4);
+                        font: var(--md-sys-typescale-label-large);
+                        font-variant-numeric: tabular-nums;
+                        color: var(--md-sys-color-primary);
+                    }
+                    @media (min-width: ${M3Breakpoints.MEDIUM}) { .cost-badge { justify-content: center; } }
+                    
+                    /* PRIMARY CONFIRMATION BUTTON */
+                    .confirmation-badge {
+                        position: absolute;
+                        top: 50%;
+                        right: var(--md-sys-spacing-16); 
+                        transform: translateY(-50%);
+                        /* Visuals handled by m3-icon-button variant="filled" */
+                        z-index: 10; /* Local stacking context check: relative to card. */
+                        /* Note: Using z-index 10 here is fine as it is local to the card context */
+                        /* Animation handled here or by component? Let's keep the entry animation */
+                        /* Emphasized easing for entrance */
+                        animation: var(--md-sys-motion-keyframes-scale-in) var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized);
+                    }
+                    
+                    @media (min-width: ${M3Breakpoints.MEDIUM}) {
+                        .confirmation-badge {
+                            top: var(--md-sys-spacing-12);
+                            right: var(--md-sys-spacing-12);
+                            transform: translateY(0);
+                        }
+                    }
+                    
+                    }
+                    
+                    /* scaleIn is now global in style.css */
+                </style>
+                
+                <m3-card id="container" variant="elevated" clickable>
+                     <div class="card-content">
+                        <div id="emoji-slot" class="emoji"></div>
+                        <div class="info">
+                            <h4 id="label-slot" class="label"></h4>
+                            <div class="cost-badge">
+                                <span id="cost-slot"></span>
+                                <renard-icon type="normal" size="28px"></renard-icon>
+                            </div>
+                        </div>
+                    </div>
+                </m3-card>
+            `;
         }
 
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host {
-                    display: block;
-                    height: 100%;
-                    font-family: inherit;
-                }
-                .card {
-                    position: relative;
-                    text-align: center;
-                    padding: 1rem;
-                    border-radius: 0.75rem;
-                    border-width: 2px;
-                    height: 100%;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    transition: all 0.3s ease-in-out;
-                    border-color: #E5E7EB; /* slate-200 */
-                }
-                .card--unaffordable {
-                    background-color: #F1F5F9; /* slate-100 */
-                    color: #94A3B8; /* slate-400 */
-                    cursor: not-allowed;
-                }
-                .card--affordable {
-                    background-color: white;
-                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-                    cursor: pointer;
-                }
-                .card--affordable:hover {
-                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-                    transform: translateY(-4px);
-                }
-                .card--pending {
-                    background-color: white;
-                    cursor: pointer;
-                    box-shadow: 0 0 0 3px #FBBF24; /* amber-400 */
-                    transform: translateY(-2px);
-                }
-                .icon {
-                    font-size: 2.25rem;
-                    margin-bottom: 0.5rem;
-                }
-                .name {
-                    font-size: 1.125rem;
-                    font-weight: 700;
-                    margin: 0;
-                }
-                .cost {
-                    margin-top: 0.5rem;
-                    font-size: 1.25rem;
-                    font-weight: 900;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                }
-                .cost--affordable {
-                    color: #F59E0B; /* amber-500 */
-                }
-                .validate-btn {
-                    position: absolute;
-                    top: 0.5rem;
-                    right: 0.5rem;
-                    background-color: #22C55E; /* green-500 */
-                    color: white;
-                    width: 2rem;
-                    height: 2rem;
-                    border-radius: 9999px;
-                    border: none;
-                    display: none;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-                    cursor: pointer;
-                    font-size: 1.2rem;
-                    line-height: 1;
-                }
-                .validate-btn:hover {
-                    background-color: #16A34A; /* green-600 */
-                }
-                .validate-btn--visible {
-                    display: flex;
-                }
-            </style>
-            
-            <div class="card ${stateClass}">
-                <button class="validate-btn ${isPending && isParent ? 'validate-btn--visible' : ''}">
-                    ✔
-                </button>
-                <div class="icon">${icon}</div>
-                <h4 class="name">${name}</h4>
-                <div class="cost ${canAfford ? 'cost--affordable' : ''}">
-                    ${cost}
-                    <renard-icon size="24px" style="vertical-align: middle;"></renard-icon>
-                </div>
-            </div>
-        `;
-    }
+        // 2. DOM Updates (Fine-grained)
+        const emojiSlot = this.shadowRoot.getElementById('emoji-slot');
+        const labelSlot = this.shadowRoot.getElementById('label-slot');
+        const costSlot = this.shadowRoot.getElementById('cost-slot');
 
-    _attachEventListeners() {
-        const rewardId = this.getAttribute('id');
-        if (!rewardId) return;
+        // Update Text
+        if (emojiSlot.textContent !== emoji) emojiSlot.textContent = emoji;
+        if (labelSlot.textContent !== label) labelSlot.textContent = label;
+        if (costSlot.textContent !== String(cost)) costSlot.textContent = cost;
 
-        const cardElement = this.shadowRoot.querySelector('.card');
-        const validateButton = this.shadowRoot.querySelector('.validate-btn');
+        // Update Host and Card Classes
+        // We move state classes to the HOST to manage them cleaner in style block
+        this.classList.remove('state-pending', 'state-affordable', 'state-locked');
+        if (isPending) {
+            this.classList.add('state-pending');
+        } else if (canAfford) {
+            this.classList.add('state-affordable');
+        } else {
+            this.classList.add('state-locked');
+        }
 
-        cardElement.addEventListener('click', (e) => {
-            if (e.target.closest('.validate-btn')) return;
+        // 3. Handle Confirmation Badge (Add/Remove)
+        let confirmBtn = this.shadowRoot.getElementById('confirm-btn');
+        const currentUser = userService.getCurrentUser();
+        const isParent = currentUser && currentUser.isParent;
+        const cardComponent = this.shadowRoot.getElementById('container');
 
-            boardService.toggleRewardSelection(rewardId);
-        });
+        // Show button ONLY if Pending AND isParent
+        if (isPending && isParent) {
+            if (!confirmBtn) {
+                // ADD button if missing
+                const btn = document.createElement('m3-icon-button');
+                btn.id = 'confirm-btn';
+                btn.className = 'confirmation-badge'; // For positioning
+                btn.setAttribute('variant', 'filled');
+                btn.setAttribute('aria-label', 'Valider la récompense');
 
-        validateButton.addEventListener('click', () => {
-            this.dispatchEvent(new CustomEvent('show-confirmation-modal', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    title: `Valider "${this.getAttribute('name')}" ?`,
-                    message: "Cette action marquera la récompense comme utilisée.",
-                    onConfirm: () => boardService.validateReward(rewardId)
-                }
-            }));
-        });
+                // Slot the icon
+                btn.innerHTML = '<m3-icon svg-path="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" size="24px"></m3-icon>';
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.dispatchEvent(new CustomEvent('request-confirmation', {
+                        bubbles: true,
+                        composed: true
+                    }));
+                });
+
+                // Append to m3-card
+                const contentDiv = this.shadowRoot.querySelector('.card-content');
+                contentDiv.insertBefore(btn, contentDiv.firstChild);
+            }
+        } else {
+            if (confirmBtn) {
+                confirmBtn.remove();
+            }
+        }
     }
 }
 

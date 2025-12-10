@@ -1,0 +1,138 @@
+import './m3-ripple.js';
+export class M3Card extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    static get observedAttributes() {
+        return ['variant', 'clickable'];
+    }
+
+    connectedCallback() {
+        this.render();
+        this.addEventListener('keydown', this.handleKeyDown.bind(this));
+    }
+
+    handleKeyDown(e) {
+        if (this.hasAttribute('clickable') && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            this.click();
+        }
+    }
+
+    attributeChangedCallback() {
+        this.render();
+    }
+
+    render() {
+        const variant = this.getAttribute('variant') || 'filled'; // filled, outlined, elevated
+        const clickable = this.hasAttribute('clickable');
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: block;
+                }
+                .card {
+                    border-radius: var(--md-sys-shape-corner-medium);
+                    padding: var(--md-sys-spacing-16);
+                    overflow: hidden;
+                    transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+                    position: relative;
+                    height: 100%;
+                    box-sizing: border-box;
+                    outline: none; /* Focus ring handled by state layer or custom */
+                }
+                
+                .clickable {
+                    cursor: pointer;
+                    user-select: none;
+                }
+                
+                .clickable:focus-visible {
+                    outline: var(--md-sys-state-focus-ring-width) solid var(--md-sys-state-focus-ring-color);
+                    outline-offset: var(--md-sys-state-focus-ring-offset);
+                }
+
+                /* Variants */
+                .filled {
+                    background-color: var(--md-sys-color-surface-container-highest); 
+                }
+                
+                .outlined {
+                    background-color: var(--md-sys-color-surface);
+                    border: 1px solid var(--md-sys-color-outline-variant);
+                }
+
+                .elevated {
+                    background-color: var(--md-sys-color-surface-container-low);
+                    box-shadow: var(--md-sys-elevation-1);
+                }
+
+                /* Tint Layer */
+                .tint-layer {
+                    position: absolute;
+                    inset: 0;
+                    background-color: var(--md-sys-color-surface-tint);
+                    opacity: 0; /* Default */
+                    transition: opacity var(--md-sys-motion-duration-short) ease;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+
+                /* Tint Logic based on Elevation */
+                .elevated .tint-layer {
+                    opacity: var(--md-sys-elevation-tint-level-1);
+                }
+                
+                .elevated.clickable:hover .tint-layer {
+                     opacity: var(--md-sys-elevation-tint-level-2);
+                }
+                
+                .elevated.clickable:active .tint-layer {
+                     opacity: var(--md-sys-elevation-tint-level-1);
+                }
+
+                /* State Layer */
+                .state-layer {
+                    position: absolute;
+                    inset: 0;
+                    background-color: var(--md-sys-color-on-surface);
+                    opacity: 0;
+                    transition: opacity var(--md-sys-motion-duration-short) ease;
+                    pointer-events: none;
+                    z-index: 1; /* Above tint */
+                }
+
+                .clickable:hover .state-layer {
+                    opacity: var(--md-sys-state-hover-state-layer-opacity);
+                }
+                
+                .clickable:focus-visible .state-layer {
+                    opacity: var(--md-sys-state-focus-state-layer-opacity);
+                }
+
+                /* Active state handled by ripple */
+                
+                /* Content above state layer */
+                .content {
+                    position: relative;
+                    z-index: 2; /* Above state and tint */
+                }
+            </style>
+            <div 
+                class="card ${variant} ${clickable ? 'clickable' : ''}" 
+                part="card"
+                ${clickable ? 'tabindex="0" role="button"' : ''}
+            >
+                <div class="tint-layer"></div>
+                <div class="state-layer"></div>
+                ${clickable ? '<m3-ripple></m3-ripple>' : ''}
+                <div class="content"><slot></slot></div>
+            </div>
+        `;
+    }
+}
+
+customElements.define('m3-card', M3Card);

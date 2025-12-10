@@ -24,29 +24,33 @@ class RenardIcon extends HTMLElement {
         const type = this.getAttribute('type') || 'normal';
         const size = this.getAttribute('size');
 
-        let circleFill = '#F59E0B';    // Default from SVG
-        let circleStroke = '#B45309';   // Default from SVG
-        let iconFill = '#B45309';       // Default from SVG
+        // Use CSS variables for harmonization
+        let circleFill = 'var(--renard-token-primary-fill)';
+        let circleStroke = 'var(--renard-token-primary-carved)';
+        let iconFill = 'var(--renard-token-primary-carved)'; 
         let circleDisplay = 'inline';
-        
+
         switch (type) {
             case 'gold':
-                circleFill = '#FFD700';
-                circleStroke = '#B59600';
-                iconFill = '#B59600';
+                circleFill = 'var(--renard-token-gold-fill)';
+                circleStroke = 'var(--renard-token-gold-carved)';
+                iconFill = 'var(--renard-token-gold-carved)';
                 break;
             case 'silver':
-                circleFill = '#D1D5DB';
-                circleStroke = '#9CA3AF';
-                iconFill = '#9CA3AF';
+                circleFill = 'var(--renard-token-silver-fill)';
+                circleStroke = 'var(--renard-token-silver-carved)';
+                iconFill = 'var(--renard-token-silver-carved)';
                 break;
             case 'white':
-                circleDisplay = 'none'; // For 'white', we hide the circle
-                iconFill = 'white';
+                circleDisplay = 'none';
+                iconFill = '#FFFFFF';
                 break;
             case 'normal':
             default:
-                // Colors are already set to the defaults
+                // Normal
+                circleFill = 'var(--renard-token-primary-fill)';
+                circleStroke = 'var(--renard-token-primary-carved)';
+                iconFill = 'var(--renard-token-primary-carved)';
                 break;
         }
 
