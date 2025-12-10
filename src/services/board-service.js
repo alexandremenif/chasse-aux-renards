@@ -121,7 +121,6 @@ class BoardService {
     // Client-side validation for solvency
     if (newPendingStatus) {
       if (this.currentBoardData.availableToken < reward.cost) {
-        console.warn("Insufficient funds to select reward");
         return;
       }
     }

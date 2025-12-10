@@ -24,29 +24,33 @@ class RenardIcon extends HTMLElement {
         const type = this.getAttribute('type') || 'normal';
         const size = this.getAttribute('size');
 
-        let circleFill = '#F59E0B';    // Default from SVG
-        let circleStroke = '#B45309';   // Default from SVG
-        let iconFill = '#B45309';       // Default from SVG
+        // Use CSS variables for harmonization
+        let circleFill = 'var(--renard-color-normal)';
+        let circleStroke = 'var(--renard-color-normal-border)';
+        let iconFill = 'var(--renard-color-normal-border)'; // Icon often matches border/darker shade
         let circleDisplay = 'inline';
-        
+
         switch (type) {
             case 'gold':
-                circleFill = '#FFD700';
-                circleStroke = '#B59600';
-                iconFill = '#B59600';
+                circleFill = 'var(--renard-color-gold)';
+                circleStroke = 'var(--renard-color-gold-border)';
+                iconFill = 'var(--renard-color-gold-border)'; // Carved look (Dark on Vivid)
                 break;
             case 'silver':
-                circleFill = '#D1D5DB';
-                circleStroke = '#9CA3AF';
-                iconFill = '#9CA3AF';
+                circleFill = 'var(--renard-color-silver)';
+                circleStroke = 'var(--renard-color-silver-border)';
+                iconFill = 'var(--renard-color-silver-border)'; // Carved look
                 break;
             case 'white':
-                circleDisplay = 'none'; // For 'white', we hide the circle
-                iconFill = 'white';
+                circleDisplay = 'none';
+                iconFill = '#FFFFFF';
                 break;
             case 'normal':
             default:
-                // Colors are already set to the defaults
+                // Normal
+                circleFill = 'var(--renard-color-normal)';
+                circleStroke = 'var(--renard-color-normal-border)';
+                iconFill = 'var(--renard-color-normal-border)'; // Carved look
                 break;
         }
 

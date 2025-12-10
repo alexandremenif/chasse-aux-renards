@@ -1,31 +1,237 @@
 :root {
-    --primary-color: #D97706; /* amber-600 */
-    --primary-color-hover: #B45309; /* amber-700 */
+    /* --- Material 3 Color Tokens (Source: Mockup/Orange Theme) --- */
+    -webkit-tap-highlight-color: transparent;
+
+    /* 1. Couleurs primaires vives pour un meilleur contraste */
+    --md-sys-color-primary: #F97316;
+    /* Orange vif (Bronze) */
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #FFE8D6;
+    /* Conteneur orange clair */
+    --md-sys-color-on-primary-container: #5A2A00;
+
+    --md-sys-color-secondary: #64748B;
+    /* Gris 'argent' plus froid et plus foncé (Slate-600) */
+    --md-sys-color-on-secondary: #FFFFFF;
+    --md-sys-color-secondary-container: #E2E8F0;
+    /* Fond de boîte 'argent' (Slate-200) */
+    --md-sys-color-on-secondary-container: #1E293B;
+    /* Texte sur 'argent' (Slate-800) */
+
+    --md-sys-color-tertiary: #FACC15;
+    /* Jaune vif (Or) */
+    --md-sys-color-on-tertiary: #422006;
+    --md-sys-color-tertiary-container: #FFF3C4;
+    --md-sys-color-on-tertiary-container: #331A00;
+
+    --md-sys-color-error: #BA1A1A;
+    --md-sys-color-on-error: #FFFFFF;
+    --md-sys-color-error-container: #FFDAD6;
+    --md-sys-color-on-error-container: #410002;
+
+    /* 2. Hiérarchie des surfaces pour un meilleur contraste */
+    --md-sys-color-surface: #F8FAFC;
+    /* Fond de la page (Gris-Bleu très clair / Slate-50) */
+    --md-sys-color-on-surface: #29180E;
+    /* Texte principal */
+    --md-sys-color-on-surface-variant: #5C4436;
+    /* Texte secondaire */
+
+    --md-sys-color-surface-container-high: #FFFCFA;
+    /* Fond du conteneur de l'app (Beige très clair / Orange-50) */
+    --md-sys-color-surface-container: #FFFFFF;
+    /* Fond des cartes (Blanc pur) */
+    --md-sys-color-surface-container-low: #FFFFFF;
+    /* Fond pour cartes élevées */
+
+    --md-sys-color-outline: #8F7362;
+    --md-sys-color-outline-variant: #D7C2B4; /* Lighter outline for dividers */
+    --md-sys-color-shadow: #000000;
     
-    --text-color-dark: #1E293B; /* slate-800 */
-    --text-color-light: #475569; /* slate-600 */
-    --text-color-on-primary: white;
-    
-    --border-color: #CBD5E1; /* slate-300 */
-    --border-color-light: #E5E7EB; /* slate-200 */
-    
-    --surface-background: white;
+    --md-sys-color-surface-tint: var(--md-sys-color-primary);
+
+    /* Custom Tiers (Game Logic) - Harmonized with new tokens */
+    /* Normal Tier */
+    --renard-color-normal: #F59E0B; /* Restore original Amber-500 */
+    --renard-color-normal-bg: var(--md-sys-color-primary-container);
+    --renard-color-normal-border: #B45309; 
+
+    /* Silver Tier */
+    --renard-color-silver: #D1D5DB; /* Restore original Light Silver */
+    --renard-color-silver-bg: var(--md-sys-color-secondary-container);
+    --renard-color-silver-border: #9CA3AF; 
+    --renard-color-silver-text: var(--md-sys-color-secondary); /* Text remains Slate-600 */
+
+    /* Gold Tier - Custom/Tertiary */
+    --renard-color-gold: #FFD700; /* Custom Gold */
+    --renard-color-gold-bg: var(--md-sys-color-tertiary-container);
+    --renard-color-gold-border: #B59600; /* Darker Gold for borders */
+    --renard-color-gold-text: #B59600; /* Darker Gold for text to ensure contrast */
+
+    /* Typography (Inter) */
+    --md-sys-typescale-display-large: 400 57px/64px 'Inter', sans-serif;
+    --md-sys-typescale-display-medium: 400 45px/52px 'Inter', sans-serif;
+    --md-sys-typescale-display-small: 400 36px/44px 'Inter', sans-serif;
+
+    --md-sys-typescale-headline-large: 400 32px/40px 'Inter', sans-serif;
+    --md-sys-typescale-headline-medium: 400 28px/36px 'Inter', sans-serif;
+    --md-sys-typescale-headline-small: 400 24px/32px 'Inter', sans-serif;
+
+    --md-sys-typescale-title-large: 400 22px/28px 'Inter', sans-serif;
+    --md-sys-typescale-title-medium: 500 16px/24px 'Inter', sans-serif;
+    --md-sys-typescale-title-small: 500 14px/20px 'Inter', sans-serif;
+
+    --md-sys-typescale-label-large: 500 14px/20px 'Inter', sans-serif;
+    --md-sys-typescale-label-medium: 500 12px/16px 'Inter', sans-serif;
+    --md-sys-typescale-label-small: 500 11px/16px 'Inter', sans-serif;
+
+    --md-sys-typescale-body-large: 400 16px/24px 'Inter', sans-serif;
+    --md-sys-typescale-body-medium: 400 14px/20px 'Inter', sans-serif;
+    --md-sys-typescale-body-small: 400 12px/16px 'Inter', sans-serif;
+
+    /* Elevation */
+    --md-sys-elevation-0: none;
+    --md-sys-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-3: 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-4: 0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-5: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+
+    /* --- Material 3 Spacing Tokens --- */
+    --md-sys-spacing-0: 0px;
+    --md-sys-spacing-4: 4px;
+    --md-sys-spacing-8: 8px;
+    --md-sys-spacing-12: 12px;
+    --md-sys-spacing-16: 16px;
+    --md-sys-spacing-24: 24px;
+    --md-sys-spacing-32: 32px;
+    --md-sys-spacing-40: 40px;
+    --md-sys-spacing-48: 48px;
+    --md-sys-spacing-56: 56px;
+    --md-sys-spacing-64: 64px;
+    --md-sys-spacing-72: 72px;
+    --md-sys-spacing-80: 80px;
+    --md-sys-spacing-96: 96px;
+
+    /* --- Material 3 Shape Tokens --- */
+    --md-sys-shape-corner-extra-small: 4px;
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    --md-sys-shape-corner-full: 9999px;
+
+    /* --- Material 3 Motion Tokens --- */
+    --md-sys-motion-duration-short: 200ms;
+    --md-sys-motion-duration-medium: 400ms;
+    --md-sys-motion-duration-long: 600ms;
+
+    --md-sys-motion-easing-standard: cubic-bezier(0.2, 0.0, 0, 1.0);
+    --md-sys-motion-easing-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1.0);
+
+    /* --- Material 3 State Layer Opacities --- */
+    --md-sys-state-hover-state-layer-opacity: 0.08;
+    --md-sys-state-focus-state-layer-opacity: 0.12;
+    --md-sys-state-pressed-state-layer-opacity: 0.12;
+    --md-sys-state-dragged-state-layer-opacity: 0.16;
+
+    /* Semantic State Colors (optional but good for consistency) */
+    --md-sys-state-primary-hover: color-mix(in srgb, var(--md-sys-color-primary) 100%, black var(--md-sys-state-hover-state-layer-opacity));
+    /* Note: color-mix is modern, but let's stick to using opacity layers in components for now to match M3 pattern.
+       However, we can define the base colors for layers if needed. */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* --- Material 3 Dark Theme Tokens --- */
+
+        /* 1. Colors */
+        --md-sys-color-primary: #FFB784;
+        /* Orange-300 equivalent */
+        --md-sys-color-on-primary: #4F2500;
+        --md-sys-color-primary-container: #723B00;
+        --md-sys-color-on-primary-container: #FFDCC6;
+
+        --md-sys-color-secondary: #CDE5FF;
+        /* Slate-300 equivalent (ish) */
+        --md-sys-color-on-secondary: #003355;
+        --md-sys-color-secondary-container: #204A6F;
+        --md-sys-color-on-secondary-container: #CDE5FF;
+
+        --md-sys-color-tertiary: #DDC66E;
+        /* Gold-ish */
+        --md-sys-color-on-tertiary: #3A3000;
+        --md-sys-color-tertiary-container: #534600;
+        --md-sys-color-on-tertiary-container: #FAE287;
+
+        --md-sys-color-error: #FFB4AB;
+        --md-sys-color-on-error: #690005;
+        --md-sys-color-error-container: #93000A;
+        --md-sys-color-on-error-container: #FFDAD6;
+
+        /* 2. Surfaces (Dark Mode uses elevation overlays usually, but here fixed colors) */
+        --md-sys-color-background: #141218;
+        --md-sys-color-on-background: #E6E1E5;
+
+        --md-sys-color-surface: #141218;
+        --md-sys-color-on-surface: #E6E1E5;
+        --md-sys-color-on-surface-variant: #CAC4D0;
+
+        --md-sys-color-surface-container-high: #2B2930;
+        --md-sys-color-surface-container: #211F26;
+        --md-sys-color-surface-container-low: #1D1B20;
+
+        --md-sys-color-outline: #938F99;
+        --md-sys-color-outline-variant: #49454F;
+        --md-sys-color-shadow: #000000;
+
+        /* Renard Logic - Dark Mode Overrides where necessary */
+        /* Re-binding these ensures they follow the new dark system tokens */
+        --renard-color-normal-bg: var(--md-sys-color-primary-container);
+        --renard-color-silver-bg: var(--md-sys-color-secondary-container);
+        --renard-color-gold-bg: var(--md-sys-color-tertiary-container);
+    }
+}
+
+/* Global Focus Ring Utility & Tokens */
+:root {
+    --md-sys-state-focus-ring-width: 2px;
+    --md-sys-state-focus-ring-offset: 2px;
+    --md-sys-state-focus-ring-color: var(--md-sys-color-primary);
+}
+
+.focus-ring {
+    outline: var(--md-sys-state-focus-ring-width) solid var(--md-sys-state-focus-ring-color);
+    outline-offset: var(--md-sys-state-focus-ring-offset);
+}
+
+.focus-ring:focus-visible {
+    outline: var(--md-sys-state-focus-ring-width) solid var(--md-sys-state-focus-ring-color);
+    outline-offset: var(--md-sys-state-focus-ring-offset);
 }
 
 body {
-    font-family: 'Nunito', sans-serif;
-    background-color: #F0F4F8;
-    color: var(--text-color-dark);
+    font-family: 'Inter', sans-serif;
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+    margin: 0;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    margin: 0; /* Reset default margin */
 }
 
 #app {
-    display: block; /* Custom elements are inline by default, make it a block container */
+    display: block;
 }
 
-/* Screen-reader only utility */
+/* Material Icons Class */
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+}
+
+/* Screen Reader Only Utility */
 .sr-only {
     position: absolute;
     width: 1px;
