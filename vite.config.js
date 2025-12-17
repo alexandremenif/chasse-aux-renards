@@ -19,6 +19,17 @@ export default defineConfig({
       pwaAssets: {
         image: 'public/renard-icon.svg',
       }
-    })
+    }),
+    {
+      name: 'post-build-maskable-overwrite',
+      closeBundle: {
+        sequential: true,
+        order: 'post',
+        async handler() {
+          const { overwriteMaskable } = await import('./scripts/overwrite-maskable.js');
+          await overwriteMaskable();
+        }
+      }
+    }
   ]
 });
