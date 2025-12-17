@@ -21,6 +21,8 @@
     "vite-plugin-pwa": "^1.0.2"
   },
   "dependencies": {
-    "firebase": "^12.0.0"
+    "@fontsource/inter": "^5.2.8",
+    "firebase": "^12.0.0",
+    "material-symbols": "^0.40.2"
   }
 }

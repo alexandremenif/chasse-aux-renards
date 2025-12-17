@@ -22,11 +22,15 @@ export class M3Fab extends HTMLElement {
 
     render() {
         const size = this.getAttribute('size') || 'medium'; // medium (default/56dp), small (40dp), large (96dp)
-        const iconAttr = this.getAttribute('icon');
-        const defaultPlusPath = "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z";
+        const iconName = this.getAttribute('icon');
+        const iconPath = this.getAttribute('svg-path');
 
-        // Use attribute if provided (SVG path), otherwise default
-        const iconPath = iconAttr || defaultPlusPath;
+        let iconContent = '';
+        if (iconName) {
+            iconContent = `<m3-icon name="${iconName}" size="${size === 'large' ? '36px' : '24px'}"></m3-icon>`;
+        } else if (iconPath) {
+             iconContent = `<m3-icon svg-path="${iconPath}" size="${size === 'large' ? '36px' : '24px'}"></m3-icon>`;
+        }
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -112,7 +116,7 @@ export class M3Fab extends HTMLElement {
             </style>
             <button class="${size}" aria-label="${this.getAttribute('aria-label') || 'Floating action button'}">
                 <m3-ripple style="z-index: 3;"></m3-ripple>
-                <m3-icon svg-path="${iconPath}" size="${size === 'large' ? '36px' : '24px'}"></m3-icon>
+                ${iconContent}
             </button>
         `;
     }

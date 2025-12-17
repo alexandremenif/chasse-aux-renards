@@ -77,7 +77,8 @@ class RewardCard extends HTMLElement {
                     /* Pending State */
                     :host(.state-pending) m3-card::part(card) {
                         background-color: var(--md-sys-color-surface-container); 
-                        border: 2px solid var(--renard-token-gold-fill); 
+                        /* use box-shadow inset to avoid layout shift and potential border/background-clip issues */
+                        box-shadow: var(--md-sys-elevation-1), inset 0 0 0 2px var(--renard-token-gold-fill);
                     }
 
                     .emoji {
@@ -200,9 +201,7 @@ class RewardCard extends HTMLElement {
                 btn.className = 'confirmation-badge'; // For positioning
                 btn.setAttribute('variant', 'filled');
                 btn.setAttribute('aria-label', 'Valider la récompense');
-
-                // Slot the icon
-                btn.innerHTML = '<m3-icon svg-path="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" size="24px"></m3-icon>';
+                btn.setAttribute('icon', 'check');
 
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();

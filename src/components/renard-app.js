@@ -126,7 +126,7 @@ class RenardApp extends HTMLElement {
                 </div>
 
                 <!-- FAB triggers the add token action (Parent Only) -->
-                ${isParent ? `<m3-fab id="fab-add" size="medium"></m3-fab>` : ''}
+                ${isParent ? `<m3-fab id="fab-add" size="medium" icon="add"></m3-fab>` : ''}
 
                 <!-- Modals -->
                 <confirmation-modal id="confirmation-modal"></confirmation-modal>
