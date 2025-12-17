@@ -125,23 +125,22 @@ class RewardCard extends HTMLElement {
                     
                     /* PRIMARY CONFIRMATION BUTTON */
                     .confirmation-badge {
-                        position: absolute;
-                        top: 50%;
-                        right: var(--md-sys-spacing-16); 
-                        transform: translateY(-50%);
-                        /* Visuals handled by m3-icon-button variant="filled" */
-                        z-index: 10; /* Local stacking context check: relative to card. */
-                        /* Note: Using z-index 10 here is fine as it is local to the card context */
-                        /* Animation handled here or by component? Let's keep the entry animation */
-                        /* Emphasized easing for entrance */
+                        /* Mobile: Static position (part of flux), pushed to end */
+                        position: relative;
+                        margin-left: auto; /* Push to right in flex row */
+                        z-index: 2;
+                        
+                        /* Animation */
                         animation: var(--md-sys-motion-keyframes-scale-in) var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized);
                     }
                     
                     @media (min-width: ${M3Breakpoints.MEDIUM}) {
                         .confirmation-badge {
+                            /* Desktop (Grid): Absolute Top-Right */
+                            position: absolute;
                             top: var(--md-sys-spacing-12);
                             right: var(--md-sys-spacing-12);
-                            transform: translateY(0);
+                            margin-left: 0;
                         }
                     }
                     
@@ -211,9 +210,9 @@ class RewardCard extends HTMLElement {
                     }));
                 });
 
-                // Append to m3-card
+                // Append to m3-card (End of the flex container for "Trailing Icon" pattern)
                 const contentDiv = this.shadowRoot.querySelector('.card-content');
-                contentDiv.insertBefore(btn, contentDiv.firstChild);
+                contentDiv.appendChild(btn);
             }
         } else {
             if (confirmBtn) {
