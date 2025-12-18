@@ -33,7 +33,7 @@ class RewardBoard extends HTMLElement {
                 <style>
                     :host { display: block; padding: var(--md-sys-spacing-24); text-align: center; color: var(--md-sys-color-on-surface-variant); font: var(--md-sys-typescale-body-large); }
                 </style>
-                <div>Chargement du tableau... (ou aucun tableau sélectionné)</div>
+                <div>Aucun tableau sélectionné</div>
             `;
             return;
         }

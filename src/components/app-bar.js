@@ -17,6 +17,7 @@ class AppBar extends HTMLElement {
 
     connectedCallback() {
         const currentUser = userService.getCurrentUser();
+        // Determine isParent immediately if possible, or wait for update
         this.isParent = currentUser && currentUser.isParent;
 
         this._render();
@@ -43,6 +44,20 @@ class AppBar extends HTMLElement {
     }
 
     _render() {
+        const currentUser = userService.getCurrentUser();
+        const authenticated = currentUser !== null;
+        const boardsCount = currentUser?.boards?.length ?? 0;
+        
+        // Show Selector ONLY if:
+        // 1. Not Loading
+        // 2. Is Parent (can switch/view)
+        // 3. Has more than 1 board (otherwise no point switching)
+        const shouldShowSelector = authenticated && this.isParent && boardsCount > 1;
+
+        // Hide Title on Mobile ONLY if we are showing the selector (to save space)
+        // If selector is hidden (loading or single board), we show title.
+        const hideTitleOnMobile = shouldShowSelector;
+        
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
@@ -60,7 +75,7 @@ class AppBar extends HTMLElement {
                    text-overflow: ellipsis;
                 }
 
-                /* Mobile: Hide Title ONLY if we have a selector to show (Parents) */
+                /* Mobile: Hide Title ONLY if selector needs space */
                 @media (max-width: 600px) {
                     h1.hide-on-mobile {
                         display: none;
@@ -69,12 +84,12 @@ class AppBar extends HTMLElement {
             </style>
             <m3-app-bar>
                 <div slot="start">
-                   <!-- Title (Hidden on Mobile ONLY if parent) -->
-                   <h1 class="${this.isParent ? 'hide-on-mobile' : ''}">La Chasse aux Renards</h1>
+                   <!-- Title: Hidden on mobile only if selector is visible -->
+                   <h1 class="${hideTitleOnMobile ? 'hide-on-mobile' : ''}">La Chasse aux Renards</h1>
                 </div>
 
                 <div slot="center">
-                    ${this.isParent
+                    ${shouldShowSelector
                 ? `
                         <!-- Board Selector: Centers on Desktop, Shifts Left on Mobile -->
                         <board-selector 
@@ -88,7 +103,7 @@ class AppBar extends HTMLElement {
                 </div>
 
                 <div slot="end">
-                    <user-info></user-info>
+                    ${authenticated ? `<user-info></user-info>` : ''}
                 </div>
             </m3-app-bar>
         `;

@@ -55,9 +55,6 @@ class UserService {
   }
 
   getCurrentUser() {
-    if (!this.currentUser) {
-      throw new Error("User not available. This may be because the user is not authenticated or data is still loading.");
-    }
     return this.currentUser;
   }
 

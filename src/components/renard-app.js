@@ -5,7 +5,7 @@ import './login-page.js';
 import './app-bar.js';
 import './reward-board.js';
 import './confirmation-modal.js';
-
+import './m3/m3-loading-indicator.js';
 
 // M3 Components
 import './m3/m3-fab.js';
@@ -16,25 +16,47 @@ class RenardApp extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.user = undefined; // Initial state: unknown
+        this.boardReady = false; // Phase 3 check
         this._unsubscribeUser = () => { };
+        this._unsubscribeBoard = () => { };
     }
 
     connectedCallback() {
         this._unsubscribeUser = userService.onUserChanged(user => {
             this.user = user;
-            this._render();
-            if (this.user) {
-                this._attachEventListeners();
+            
+            // If user is logged out, we don't care about board
+            if (!this.user) {
+                this.boardReady = false;
             }
+            
+            this._render();
         });
-    }
 
-    disconnectedCallback() {
-        this._unsubscribeUser();
-    }
-
-    _attachEventListeners() {
-
+        // We also need to know when board data is ready to switch Phase 2 -> 3
+        this._unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
+            // We consider the board "ready" if we have data OR if we know for sure there is no board selected (null)
+            // If data is null, it means no board selected or loading. 
+            // But boardService initializes with null.
+            // We need to distinguish "initial null" from "no board selected".
+            // However, boardService logic: 
+            // onUserChanged -> selectCurrentBoard -> fires null (clearing) -> loads -> fires data.
+            // If user has no boards, it fires null.
+            
+            // For simplicity/robustness:
+            // If user exists but boardData is null, we might be loading OR have no board.
+            // If user has boards, we expect data.
+            // Let's rely on a simple check: if we receive an update, we can considered "loaded" regarding the initial fetch.
+            // BUT: onCurrentBoardUpdated fires immediately with current value.
+            // If initial value is null, we might flash loading then empty. 
+            // In Phase 2 (User Found), the board service should have started loading.
+            
+            // Let's assume if we get ANY non-undefined update after user is resolved, we are "ready" to show board content (or empty state).
+             if (this.user) {
+                 this.boardReady = true;
+                 this._render();
+             }
+        });
 
         this.shadowRoot.addEventListener('show-confirmation-modal', (event) => {
             const modal = this.shadowRoot.querySelector('confirmation-modal');
@@ -45,92 +67,129 @@ class RenardApp extends HTMLElement {
                 modal.setAttribute('visible', 'true');
             }
         });
+    }
 
-        if (this.user && this.user.isParent) {
-            const fab = this.shadowRoot.querySelector('m3-fab');
+    disconnectedCallback() {
+        this._unsubscribeUser();
+        this._unsubscribeBoard();
+    }
+
+    _render() {
+        // Phase 1: Checking User
+        if (this.user === undefined) {
+            this.shadowRoot.innerHTML = `
+                <style>
+                    :host {
+                        display: block;
+                        background-color: var(--md-sys-color-surface-container);
+                        height: 100vh;
+                        width: 100vw;
+                        overflow: hidden;
+                    }
+                    m3-loading-indicator {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                    }
+                </style>
+                <app-bar></app-bar>
+                <m3-loading-indicator></m3-loading-indicator>
+            `;
+            return;
+        }
+
+        // Phase 1b: Login
+        if (this.user === null) {
+            this.shadowRoot.innerHTML = `<login-page></login-page>`;
+            return;
+        }
+
+        // Phase 2: User Found, Board Loading
+        // We show the "Shell" (Enabled AppBar) but content is still loading indicator
+        if (!this.boardReady && this.user.boards && this.user.boards.length > 0) {
+             this.shadowRoot.innerHTML = `
+                <style>
+                    :host {
+                        display: block;
+                        background-color: var(--md-sys-color-surface-container);
+                        min-height: 100vh;
+                    }
+                    
+                    m3-loading-indicator {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                    }
+                </style>
+                <app-bar></app-bar>
+                <m3-loading-indicator></m3-loading-indicator>
+            `;
+            return;
+        }
+
+        // Phase 3: Board Ready (or User has no boards)
+        // OPTIMIZATION: If the board shell is already rendered, don't re-render entire innerHTML.
+        // This prevents blowing away the DOM (and running animations/focus) on every data update.
+        if (this.shadowRoot.querySelector('reward-board')) {
+            return;
+        }
+
+        const isParent = this.user.isParent;
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: block;
+                    background-color: var(--md-sys-color-surface-container);
+                    min-height: 100vh;
+                    padding-bottom: var(--md-sys-spacing-96); /* Space for FAB */
+                }
+                
+                /* Utility for Centered Content */
+                reward-board {
+                    width: 100%;
+                    margin: 0 auto;
+                    padding: var(--md-sys-spacing-16);
+                    box-sizing: border-box;
+                }
+
+                @media (min-width: ${M3Breakpoints.EXPANDED}) {
+                    reward-board {
+                        max-width: ${M3Breakpoints.EXPANDED};
+                    }
+                }
+
+                @media (min-width: ${M3Breakpoints.LARGE}) {
+                    reward-board {
+                        max-width: ${M3Breakpoints.LARGE};
+                    }
+                }
+                
+                m3-fab {
+                    position: fixed;
+                    bottom: var(--md-sys-spacing-24);
+                    right: var(--md-sys-spacing-24);
+                    z-index: var(--md-sys-z-index-fab);
+                }
+            </style>
+
+            <app-bar></app-bar>
+            <reward-board></reward-board>
+
+            ${isParent ? `<m3-fab id="fab-add" size="medium" icon="add"></m3-fab>` : ''}
+
+            <confirmation-modal id="confirmation-modal"></confirmation-modal>
+        `;
+
+        if (isParent) {
+            const fab = this.shadowRoot.getElementById('fab-add');
             if (fab) {
                 fab.addEventListener('click', () => {
                     boardService.addToken();
                 });
             }
-        }
-    }
-
-    _render() {
-        if (this.user === undefined) {
-            this.shadowRoot.innerHTML = '';
-            return;
-        }
-
-        if (this.user === null) {
-            this.shadowRoot.innerHTML = `<login-page></login-page>`;
-        } else {
-            const isParent = this.user.isParent;
-
-            // New M3 Layout
-            this.shadowRoot.innerHTML = `
-                <style>
-                    :host {
-                        display: block;
-                        background-color: var(--md-sys-color-surface-container); /* Matched to App Bar */
-                        min-height: 100vh;
-                        padding-bottom: var(--md-sys-spacing-96); /* Space for FAB */
-                    }
-                    
-                    /* Utility for Centered Content */
-                    .content-container {
-                        width: 100%;
-                        margin: 0 auto;
-                        padding: var(--md-sys-spacing-16);
-                        box-sizing: border-box;
-                    }
-
-                    @media (min-width: ${M3Breakpoints.EXPANDED}) {
-                        .content-container {
-                            max-width: ${M3Breakpoints.EXPANDED}; /* Expanded Start */
-                            /* Removed: background, radius, shadow, margin-top */
-                        }
-                    }
-
-                    @media (min-width: ${M3Breakpoints.LARGE}) {
-                        .content-container {
-                            max-width: ${M3Breakpoints.LARGE}; /* Large Start */
-                        }
-                    }
-                    
-                    m3-fab {
-                        position: fixed;
-                        bottom: var(--md-sys-spacing-24);
-                        right: var(--md-sys-spacing-24);
-                        z-index: var(--md-sys-z-index-fab);
-                    }
-
-                    /* App Bar Wrapper - Full Width */
-                    .app-bar-wrapper {
-                        position: sticky;
-                        top: 0;
-                        z-index: var(--md-sys-z-index-app-bar);
-                        background-color: var(--md-sys-color-surface-container); /* Or surface */
-                        width: 100%;
-                    }
-                </style>
-
-                <!-- Full Width App Bar -->
-                <div class="app-bar-wrapper">
-                    <app-bar></app-bar>
-                </div>
-            
-                <!-- Centered Content -->
-                <div class="content-container">
-                    <reward-board></reward-board>
-                </div>
-
-                <!-- FAB triggers the add token action (Parent Only) -->
-                ${isParent ? `<m3-fab id="fab-add" size="medium" icon="add"></m3-fab>` : ''}
-
-                <!-- Modals -->
-                <confirmation-modal id="confirmation-modal"></confirmation-modal>
-            `;
         }
     }
 }
