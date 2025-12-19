@@ -1,41 +1,147 @@
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { boardService } from '../services/board-service'
 import './m3/m3-card.js';
 import './renard-icon.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
 
-class RenardCounter extends HTMLElement {
+class RenardCounter extends LitElement {
+    static properties = {
+        total: { type: Number, reflect: true }
+    };
+
+    static styles = css`
+        :host { font-family: inherit; display: block; margin-bottom: var(--md-sys-spacing-24); }
+        
+        h2 {
+            font: var(--md-sys-typescale-title-medium);
+            color: var(--md-sys-color-on-surface-variant);
+            margin: 0 0 var(--md-sys-spacing-16) 0;
+        }
+
+        .counter-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: var(--md-sys-spacing-16); 
+            text-align: center; 
+            justify-items: stretch;
+            width: 100%;
+        }
+        
+        .counter-block { 
+            padding: var(--md-sys-spacing-16); 
+            border-radius: var(--md-sys-shape-corner-large); 
+            /* Uses specific tier colors defined in style.css */
+            background-color: var(--tier-bg);
+            color: var(--tier-text); /* Derived or manual */
+        }
+        
+        /* Mapping Tiers to CSS Variables */
+        .tier-gold {
+            /* Lighter than container for better contrast with dark text */
+            --tier-bg: color-mix(in srgb, var(--md-sys-color-tertiary-container), white 40%);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+        .tier-silver {
+                /* Lighter than container for better contrast with dark text */
+                --tier-bg: color-mix(in srgb, var(--md-sys-color-secondary-container), white 40%);
+                color: var(--md-sys-color-on-secondary-container);
+        }
+        .tier-normal {
+            /* Darkened slightly (20% white instead of 40%) */
+            --tier-bg: color-mix(in srgb, var(--md-sys-color-primary-container), white 20%);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tier-gold {
+                --tier-bg: var(--md-sys-color-tertiary-container);
+                color: var(--md-sys-color-on-tertiary-container);
+            }
+            .tier-silver {
+                --tier-bg: var(--md-sys-color-secondary-container);
+                color: var(--md-sys-color-on-secondary-container);
+            }
+            .tier-normal {
+                --tier-bg: var(--md-sys-color-primary-container);
+                color: var(--md-sys-color-on-primary-container);
+            }
+        }
+
+        .counter-label { 
+            font: var(--md-sys-typescale-title-small);
+            margin: 0 0 var(--md-sys-spacing-8) 0;
+        }
+        
+        .counter-display { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: var(--md-sys-spacing-8); 
+        }
+        
+        .counter-value { 
+            font: var(--md-sys-typescale-display-small);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--md-sys-color-on-surface); /* Blackish */
+        }
+        
+        .counter-pulse { animation: pulse-anim var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized); }
+        
+        @keyframes pulse-anim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); color: var(--md-sys-color-primary); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: ${unsafeCSS(M3Breakpoints.MEDIUM)}) {
+            .counter-grid {
+                gap: var(--md-sys-spacing-8);
+            }
+            .counter-label {
+                display: none;
+            }
+            .counter-block {
+                padding: var(--md-sys-spacing-8);
+            }
+            .counter-display {
+                flex-direction: column;
+                gap: var(--md-sys-spacing-4);
+            }
+            .counter-value {
+                font: var(--md-sys-typescale-headline-small); /* Smaller on mobile (24px/32px matches old 24px size but with correct line-height) */
+            }
+        }
+    `;
+
+    // Private Fields
+    #unsubscribeToken = () => {};
+    #shouldAnimate = false;
+
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
         this.total = 0;
-        this.previousTotal = 0;
-        this.isFirstRender = true;
-        this.unsubscribeToken = () => { };
     }
 
     connectedCallback() {
-        this.total = parseInt(this.getAttribute('total') || '0', 10);
-        this.previousTotal = this.total;
-        this.render();
+        super.connectedCallback();
 
-        this.unsubscribeToken = boardService.onNewToken(() => {
-            this.#playAnimation();
+        this.#unsubscribeToken = boardService.onNewToken(() => {
+            // Signal that we should animate after the next update cycle
+            this.#shouldAnimate = true;
         });
     }
 
     disconnectedCallback() {
-        this.unsubscribeToken();
+        super.disconnectedCallback();
+        this.#unsubscribeToken();
     }
 
-    static get observedAttributes() {
-        return ['total'];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (this.isFirstRender) return;
-        this.previousTotal = parseInt(oldValue || '0', 10);
-        this.total = parseInt(newValue || '0', 10);
-        this.render();
+    updated(changedProperties) {
+        if (this.#shouldAnimate) {
+            this.#playAnimation();
+            this.#shouldAnimate = false;
+        }
     }
 
     #getMotionDuration(tokenName) {
@@ -48,10 +154,7 @@ class RenardCounter extends HTMLElement {
     }
 
     #playAnimation() {
-        if (this.total <= this.previousTotal) return;
-
-        const oldCounts = this.#calculateRenards(this.previousTotal);
-        const newCounts = this.#calculateRenards(this.total);
+        const counters = this.#calculateRenards(this.total);
 
         const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
         if (normalCounterEl) {
@@ -62,12 +165,12 @@ class RenardCounter extends HTMLElement {
         }
 
         // Normal to Silver (includes the case where we go from 9 to 0)
-        if (newCounts.silver > oldCounts.silver || (oldCounts.silver === 9 && newCounts.silver === 0)) {
+        if (counters.silver > 0 && counters.normal == 0) {
             this.#animateTransform('normal-container', 'silver-container', 'normal');
         }
 
         // Silver to Gold
-        if (newCounts.gold > oldCounts.gold) {
+        if (counters.gold > 0 && counters.silver == 0 && counters.normal == 0) {
             this.#animateTransform('silver-container', 'gold-container', 'silver');
         }
     }
@@ -79,8 +182,8 @@ class RenardCounter extends HTMLElement {
         return { gold, silver, normal };
     }
 
-    #createCounterBlockHTML(id, label, count, iconType, classSuffix) {
-        return `
+    #createCounterBlock(id, label, count, iconType, classSuffix) {
+        return html`
             <div id="${id}" class="counter-block ${classSuffix}" title="${label}">
                 <h3 class="counter-label">
                     ${label}
@@ -94,149 +197,18 @@ class RenardCounter extends HTMLElement {
     }
 
     render() {
-        // isFirstRender logic ensures this runs only after connectedCallback sets the initial total.
-        const total = this.isFirstRender ? this.total : parseInt(this.getAttribute('total') || '0', 10);
-        const { gold, silver, normal } = this.#calculateRenards(total);
+        const { gold, silver, normal } = this.#calculateRenards(this.total);
 
-        if (this.isFirstRender) {
-            const goldHTML = this.#createCounterBlockHTML('gold-container', 'Dorés', gold, 'gold', 'tier-gold');
-            const silverHTML = this.#createCounterBlockHTML('silver-container', 'Argentés', silver, 'silver', 'tier-silver');
-            const normalHTML = this.#createCounterBlockHTML('normal-container', 'Normaux', normal, 'normal', 'tier-normal');
-
-            this.shadowRoot.innerHTML = `
-                <style>
-                    :host { font-family: inherit; display: block; margin-bottom: var(--md-sys-spacing-24); }
-                    
-                    h2 {
-                        font: var(--md-sys-typescale-title-medium);
-                        color: var(--md-sys-color-on-surface-variant);
-                        margin: 0 0 var(--md-sys-spacing-16) 0;
-                    }
-
-                    .counter-grid { 
-                        display: grid; 
-                        grid-template-columns: repeat(3, 1fr); 
-                        gap: var(--md-sys-spacing-16); 
-                        text-align: center; 
-                        justify-items: stretch;
-                        width: 100%;
-                    }
-                    
-                    .counter-block { 
-                        padding: var(--md-sys-spacing-16); 
-                        border-radius: var(--md-sys-shape-corner-large); 
-                        /* Uses specific tier colors defined in style.css */
-                        background-color: var(--tier-bg);
-                        color: var(--tier-text); /* Derived or manual */
-                    }
-                    
-                    /* Mapping Tiers to CSS Variables */
-                    .tier-gold {
-                        /* Lighter than container for better contrast with dark text */
-                        --tier-bg: color-mix(in srgb, var(--md-sys-color-tertiary-container), white 40%);
-                        color: var(--md-sys-color-on-tertiary-container);
-                    }
-                    .tier-silver {
-                         /* Lighter than container for better contrast with dark text */
-                         --tier-bg: color-mix(in srgb, var(--md-sys-color-secondary-container), white 40%);
-                         color: var(--md-sys-color-on-secondary-container);
-                    }
-                    .tier-normal {
-                        /* Darkened slightly (20% white instead of 40%) */
-                        --tier-bg: color-mix(in srgb, var(--md-sys-color-primary-container), white 20%);
-                        color: var(--md-sys-color-on-primary-container);
-                    }
-
-                    @media (prefers-color-scheme: dark) {
-                        .tier-gold {
-                            --tier-bg: var(--md-sys-color-tertiary-container);
-                            color: var(--md-sys-color-on-tertiary-container);
-                        }
-                        .tier-silver {
-                            --tier-bg: var(--md-sys-color-secondary-container);
-                            color: var(--md-sys-color-on-secondary-container);
-                        }
-                        .tier-normal {
-                            --tier-bg: var(--md-sys-color-primary-container);
-                            color: var(--md-sys-color-on-primary-container);
-                        }
-                    }
-
-                    .counter-label { 
-                        font: var(--md-sys-typescale-title-small);
-                        margin: 0 0 var(--md-sys-spacing-8) 0;
-                    }
-                    
-                    .counter-display { 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        gap: var(--md-sys-spacing-8); 
-                    }
-                    
-                    .counter-value { 
-                        font: var(--md-sys-typescale-display-small);
-                        font-weight: 700;
-                        font-variant-numeric: tabular-nums;
-                        color: var(--md-sys-color-on-surface); /* Blackish */
-                    }
-                    
-                    .counter-pulse { animation: pulse-anim var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized); }
-                    
-                    @keyframes pulse-anim {
-                        0% { transform: scale(1); }
-                        50% { transform: scale(1.25); color: var(--md-sys-color-primary); }
-                        100% { transform: scale(1); }
-                    }
-
-
-
-                        @media (max-width: ${M3Breakpoints.MEDIUM}) {
-                            .counter-grid {
-                                gap: var(--md-sys-spacing-8);
-                            }
-                            .counter-label {
-                                display: none;
-                            }
-                            .counter-block {
-                                padding: var(--md-sys-spacing-8);
-                            }
-                            .counter-display {
-                                flex-direction: column;
-                                gap: var(--md-sys-spacing-4);
-                            }
-                            .counter-value {
-                                font: var(--md-sys-typescale-headline-small); /* Smaller on mobile (24px/32px matches old 24px size but with correct line-height) */
-                            }
-                        }
-                    </style>
-                    <m3-card variant="elevated">
-                        <h2>Ton Trésor Disponible</h2>
-                        <div class="counter-grid">
-                            ${goldHTML}
-                            ${silverHTML}
-                            ${normalHTML}
-                        </div>
-                    </m3-card>
-                `;
-
-            this.isFirstRender = false;
-        } else {
-            const goldValue = this.shadowRoot.querySelector('#gold-container .counter-value');
-            const silverValue = this.shadowRoot.querySelector('#silver-container .counter-value');
-            const normalValue = this.shadowRoot.querySelector('#normal-container .counter-value');
-
-            // Safety check: if elements are missing (e.g. shadowRoot wiped), re-render? 
-            // Better: trust isFirstRender flag unless we suspect it getting out of sync.
-            if (!goldValue) {
-                this.isFirstRender = true;
-                this.render();
-                return;
-            }
-            if (goldValue) goldValue.textContent = gold;
-            if (silverValue) silverValue.textContent = silver;
-            if (normalValue) normalValue.textContent = normal;
-        }
+        return html`
+            <m3-card variant="elevated">
+                <h2>Ton Trésor Disponible</h2>
+                <div class="counter-grid">
+                    ${this.#createCounterBlock('gold-container', 'Dorés', gold, 'gold', 'tier-gold')}
+                    ${this.#createCounterBlock('silver-container', 'Argentés', silver, 'silver', 'tier-silver')}
+                    ${this.#createCounterBlock('normal-container', 'Normaux', normal, 'normal', 'tier-normal')}
+                </div>
+            </m3-card>
+        `;
     }
 
     #animateTransform(fromId, toId, particleType) {

@@ -3,12 +3,12 @@
 ## Project Overview
 **Name**: Chasse aux Renards
 **Description**: A reward tracking application for children.
-**Architecture**: Single Page Application (SPA) using Vanilla JavaScript and Vite, backed by Firebase.
+**Architecture**: Single Page Application (SPA) using **Lit** and Vite, backed by Firebase.
 
 ## Technology Stack
 - **Runtime**: Node.js
 - **Build Tool**: Vite
-- **Frontend**: Vanilla JavaScript, HTML, CSS
+- **Frontend**: **Lit** (Lightweight Web Component library), HTML, CSS
 - **Backend / BaaS**: Firebase
   - **Authentication**: Google Auth (Emulator)
   - **Database**: Cloud Firestore
@@ -31,19 +31,22 @@ See [README.md](./README.md) for detailed instructions on starting the environme
 ## Coding Guidelines
 
 ### Web Components
-- **Framework-Free**: This project uses **native Web Components** (Vanilla JS). Do not introduce frameworks like React, Vue, or Lit.
-- **Structure**: Components extend `HTMLElement` and are registered with `customElements.define`.
-- **Shadow DOM**: Use `attachShadow({ mode: 'open' })` for style encapsulation.
-- **Lifecycle**: Use `connectedCallback` for setup (listeners, initial render) and `disconnectedCallback` for cleanup.
+- **Framework**: This project uses **Lit** (`LitElement`) to build Web Components.
+- **Lifecycle**: Use Lit's reactive lifecycle (`willUpdate`, `updated` for side effects) and `render()` for declarative UI.
 - **Naming**: Use kebab-case for component tags (e.g., `renard-app`).
 
 ### Styling
-- **Scoped CSS**: Styles should be defined within the component's Shadow DOM (inside a `<style>` tag in the `innerHTML`).
-- **Global Styles**: Only use `style.css` for truly global variables (CSS custom properties) or reset styles.
+- **Methods**: Use Lit's `static styles = css` block.
+- **Variables**: Use `var(--token)` for CSS variables.
+- **Interpolation**: If interpolating JavaScript values into CSS (e.g., breakpoints), wrap them with `unsafeCSS()` carefully.
 
 ### State Management & Events
+- **Internal State**: Use Lit's `static properties`.
+  - `{ type: Object/Boolean/String }` for reactive public properties.
+  - `{ state: true }` for internal reactive state.
+  - Use **private fields** (`#field`) for non-reactive internal state or helpers.
 - **Services**: Use singleton services (e.g., `user-service.js`) for shared state and business logic.
-- **Events**: Use native `CustomEvent` for child-to-parent communication.
+- **Events**: Use `this.dispatchEvent(new CustomEvent(...))` for child-to-parent communication.
 - **Observables**: Services may expose methods to subscribe to state changes (e.g., `onUserChanged`).
 
 ### Firebase

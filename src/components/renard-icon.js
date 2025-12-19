@@ -1,36 +1,37 @@
 // src/components/renard-icon.js
+import { LitElement, html, css } from 'lit';
 
-class RenardIcon extends HTMLElement {
+class RenardIcon extends LitElement {
+    static properties = {
+        type: { type: String },
+        size: { type: String }
+    };
+
+    static styles = css`
+        :host {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    `;
+
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-    }
-
-    connectedCallback() {
-        this.render();
-    }
-
-    static get observedAttributes() {
-        return ['type', 'size'];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue !== newValue) {
-            this.render();
-        }
+        this.type = 'normal';
     }
 
     render() {
-        const type = this.getAttribute('type') || 'normal';
-        const size = this.getAttribute('size');
-
         // Use CSS variables for harmonization
         let circleFill = 'var(--renard-token-primary-fill)';
         let circleStroke = 'var(--renard-token-primary-carved)';
         let iconFill = 'var(--renard-token-primary-carved)'; 
         let circleDisplay = 'inline';
 
-        switch (type) {
+        switch (this.type) {
             case 'gold':
                 circleFill = 'var(--renard-token-gold-fill)';
                 circleStroke = 'var(--renard-token-gold-carved)';
@@ -54,17 +55,12 @@ class RenardIcon extends HTMLElement {
                 break;
         }
 
-        this.shadowRoot.innerHTML = `
+        const sizeStyle = this.size ? `width: ${this.size}; height: ${this.size};` : '';
+
+        return html`
             <style>
                 :host {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    ${size ? `width: ${size}; height: ${size};` : ''}
-                }
-                svg {
-                    width: 100%;
-                    height: 100%;
+                    ${sizeStyle}
                 }
             </style>
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">

@@ -1,19 +1,16 @@
+import { LitElement, html, css } from 'lit';
 import { userService } from '../services/user-service';
 import './m3/m3-button.js';
 
-class LoginPage extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.innerHTML = `
-      <style>
+class LoginPage extends LitElement {
+    static styles = css`
         :host {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
         }
 
         h1 {
@@ -29,24 +26,19 @@ class LoginPage extends HTMLElement {
             color: var(--md-sys-color-on-surface-variant);
             margin-bottom: var(--md-sys-spacing-32);
         }
-      </style>
-      
-      <h1>La Chasse aux Renards</h1>
-      <p>Connectez-vous pour commencer à suivre vos récompenses.</p>
-      <m3-button variant="filled" label="Se connecter avec Google"></m3-button>
     `;
-  }
 
-  connectedCallback() {
-    // Defer event listener attachment to ensure shadow DOM is ready
-    // or just attach to the element if available immediately (which it is in innerHTML)
-    const btn = this.shadowRoot.querySelector('m3-button');
-    if (btn) {
-      btn.addEventListener('click', () => {
+    _handleLogin() {
         userService.signIn();
-      });
     }
-  }
+
+    render() {
+        return html`
+            <h1>La Chasse aux Renards</h1>
+            <p>Connectez-vous pour commencer à suivre vos récompenses.</p>
+            <m3-button variant="filled" label="Se connecter avec Google" @click="${this._handleLogin}"></m3-button>
+        `;
+    }
 }
 
 customElements.define('login-page', LoginPage);

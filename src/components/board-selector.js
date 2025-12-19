@@ -1,4 +1,5 @@
 // components/board-selector.js
+import { LitElement, html, css, nothing } from 'lit';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import './m3/m3-button.js';
@@ -6,156 +7,129 @@ import './m3/m3-icon.js';
 import './m3/m3-menu.js';
 import './m3/m3-menu-item.js';
 
-class BoardSelector extends HTMLElement {
+class BoardSelector extends LitElement {
+    static properties = {
+        boardId: { type: String, attribute: 'board-id' },
+        boardName: { type: String, attribute: 'board-name' },
+        isParent: { type: Boolean, state: true },
+        boards: { type: Array, state: true },
+        menuVisible: { type: Boolean, state: true },
+        menuAlignment: { type: String, state: true }
+    };
+
+    static styles = css`
+        :host { 
+            display: inline-block; 
+            position: relative; /* Anchor for absolute menu */
+        }
+        
+        .empty-state {
+            padding: var(--md-sys-spacing-16);
+            color: var(--md-sys-color-error);
+            text-align: center;
+        }
+    `;
+
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-        this.boardId = null;
         this.boardName = '...';
         this.isParent = false;
         this.boards = [];
-    }
-
-    static get observedAttributes() {
-        return ['board-name', 'board-id'];
+        this.menuVisible = false;
+        this.menuAlignment = 'center';
     }
 
     connectedCallback() {
+        super.connectedCallback();
         const user = userService.getCurrentUser();
         this.isParent = user ? user.isParent : false;
-
-        // Pre-load boards if available
         if (user && user.boards) {
             this.boards = user.boards;
         }
-
-        this.render();
-        this._setupListeners();
+        
+        this._updateAlignment();
+        window.addEventListener('resize', this._updateAlignment.bind(this));
+    }
+    
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._updateAlignment.bind(this));
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'board-id') {
-            this.boardId = newValue;
-            this.render(); // Re-render to update selected state in menu if needed
-        }
-        if (name === 'board-name') {
-            this.boardName = newValue;
-            // specific update for button label to avoid full re-render?
-            const btn = this.shadowRoot.getElementById('selector-btn');
-            if (btn) btn.setAttribute('label', newValue);
-        }
-    }
-
-    _setupListeners() {
-        // We need to re-attach listeners if full render happens? 
-        // With current render() logic that nukes HTML, yes, or we delegate.
-        // But m3-menu setup needs to persist. 
-        // Let's make render smart or just re-attach. 
-        // Actually, simple re-render is fine for this scale.
+    _updateAlignment() {
+        const isMobile = window.matchMedia('(max-width: 600px)').matches;
+        this.menuAlignment = isMobile ? 'start' : 'center';
     }
 
     selectBoard(boardId) {
         boardService.selectCurrentBoard(boardId);
-        const menu = this.shadowRoot.getElementById('board-menu');
-        if (menu) menu.setAttribute('visible', 'false');
+        this.menuVisible = false;
+    }
+    
+    _toggleMenu() {
+        this.menuVisible = !this.menuVisible;
+    }
+    
+    _handleMenuClose() {
+        this.menuVisible = false;
+    }
+
+    updated(changedProperties) {
+        if (changedProperties.has('isParent') && this.isParent) {
+            const btn = this.shadowRoot.getElementById('selector-btn');
+            const menu = this.shadowRoot.getElementById('board-menu');
+            if (menu && btn) {
+                menu.anchorElement = btn;
+            }
+        }
     }
 
     render() {
-        // If we are re-rendering, we might lose the menu state.
-        // Ideally we only update the button label.
-        // But for now, full rebuild is safer for "Initial" + "Refactor".
-
-        // Generate Menu Items
-        let menuItemsHTML = '';
+        let menuItemsHTML = html``;
         if (this.boards.length > 0) {
             menuItemsHTML = this.boards.map(board => {
                 const isSelected = board.id === this.boardId;
-
-                // If not selected, we pass a empty transparent path or handle alignment differently.
-                // For simplicity, let's just pass the icon if selected.
-
-                return `
+                return html`
                     <m3-menu-item 
                         class="menu-item" 
                         data-id="${board.id}"
                         label="${board.owner}"
-                        ${isSelected ? 'selected' : ''}
-                        ${isSelected ? `icon="check"` : ''}
+                        ?selected="${isSelected}"
+                        icon="${isSelected ? 'check' : ''}"
                         preserve-icon-space
+                        @click="${() => this.selectBoard(board.id)}"
                     >
                     </m3-menu-item>
                 `;
-            }).join('');
+            });
         } else {
-            menuItemsHTML = `<div class="empty-state">Aucun tableau</div>`;
+            menuItemsHTML = html`<div class="empty-state">Aucun tableau</div>`;
         }
 
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host { 
-                    display: inline-block; 
-                    position: relative; /* Anchor for absolute menu */
-                }
-                
-                /* Styles delegated to m3-menu-item */
-                .empty-state {
-                    padding: var(--md-sys-spacing-16);
-                    color: var(--md-sys-color-error);
-                    text-align: center;
-                }
-            </style>
-            
+        return html`
             <m3-button 
                 id="selector-btn"
                 variant="primary-tonal" 
                 label="${this.boardName}"
                 icon="${this.isParent ? 'expand_more' : ''}"
-                ${!this.isParent ? 'disabled' : ''}
+                ?disabled="${!this.isParent}"
+                @click="${this.isParent ? this._toggleMenu : null}"
             >
-                ${this.isParent ? `<m3-icon slot="icon" name="expand_more" size="20px"></m3-icon>` : ''}
+                ${this.isParent ? html`<m3-icon slot="icon" name="expand_more" size="20px"></m3-icon>` : ''}
             </m3-button>
 
-            ${this.isParent ? `
-                <m3-menu id="board-menu" anchor="selector-btn" alignment="center">
+            ${this.isParent ? html`
+                <m3-menu 
+                    id="board-menu" 
+                    anchor="selector-btn" 
+                    alignment="${this.menuAlignment}"
+                    ?visible="${this.menuVisible}"
+                    @close="${this._handleMenuClose}"
+                >
                    ${menuItemsHTML}
                 </m3-menu>
-            ` : ''}
+            ` : nothing}
         `;
-
-        if (this.isParent) {
-            const btn = this.shadowRoot.getElementById('selector-btn');
-            const menu = this.shadowRoot.getElementById('board-menu');
-
-            // Explicitly link anchor to avoid ID resolution issues
-            if (menu && btn) {
-                menu.anchorElement = btn;
-            }
-
-            btn.addEventListener('click', (e) => {
-                // Let event bubble so other menus can close via window listener
-                menu.setAttribute('visible', 'true');
-            });
-
-            // Responsive Alignment Logic
-            const updateAlignment = () => {
-                const isMobile = window.matchMedia('(max-width: 600px)').matches;
-                // On mobile, the button is Left-Aligned (flush start), so 'center' alignment crops it. Use 'start'.
-                // On desktop, the button is Center-Aligned, so 'center' looks best.
-                menu.setAttribute('alignment', isMobile ? 'start' : 'center');
-            };
-
-            // Run once
-            updateAlignment();
-
-            // Listen for changes
-            const mql = window.matchMedia('(max-width: 600px)');
-            mql.addEventListener('change', updateAlignment);
-
-            const items = this.shadowRoot.querySelectorAll('.menu-item');
-            items.forEach(item => {
-                item.addEventListener('click', () => this.selectBoard(item.dataset.id));
-            });
-        }
     }
 }
 

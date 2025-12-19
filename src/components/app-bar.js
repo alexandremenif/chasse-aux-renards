@@ -1,52 +1,74 @@
 // src/components/app-bar.js
+import { LitElement, html, css } from 'lit';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import './user-info.js';
 import './m3/m3-icon.js';
 import './board-selector.js';
 
-class AppBar extends HTMLElement {
+class AppBar extends LitElement {
+    static properties = {
+        currentBoardName: { type: String },
+        currentBoardId: { type: String },
+        isParent: { type: Boolean },
+        currentUser: { type: Object }
+    };
+
+    static styles = css`
+        :host {
+           display: block;
+           width: 100%;
+        }
+
+        /* Title Styles */
+        h1 {
+           margin: 0;
+           font: var(--md-sys-typescale-title-large);
+           color: var(--md-sys-color-on-surface);
+           white-space: nowrap;
+           overflow: hidden;
+           text-overflow: ellipsis;
+        }
+
+        /* Mobile: Hide Title ONLY if selector needs space */
+        @media (max-width: 600px) {
+            h1.hide-on-mobile {
+                display: none;
+            }
+        }
+    `;
+
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
         this.unsubscribeBoard = () => { };
         this.currentBoardName = '...';
         this.currentBoardId = null;
         this.isParent = false;
+        this.currentUser = null;
     }
 
     connectedCallback() {
-        const currentUser = userService.getCurrentUser();
+        super.connectedCallback();
+        this.currentUser = userService.getCurrentUser();
         // Determine isParent immediately if possible, or wait for update
-        this.isParent = currentUser && currentUser.isParent;
-
-        this._render();
+        this.isParent = this.currentUser && this.currentUser.isParent;
 
         this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
                 this.currentBoardName = boardData.owner;
                 this.currentBoardId = boardData.id;
-                this._updateBoardSelector();
             }
         });
     }
 
     disconnectedCallback() {
+        super.disconnectedCallback();
         this.unsubscribeBoard();
     }
 
-    _updateBoardSelector() {
-        const selector = this.shadowRoot.querySelector('board-selector');
-        if (selector) {
-            selector.setAttribute('board-name', this.currentBoardName);
-            selector.setAttribute('board-id', this.currentBoardId || '');
-        }
-    }
-
-    _render() {
-        const currentUser = userService.getCurrentUser();
-        const authenticated = currentUser !== null;
-        const boardsCount = currentUser?.boards?.length ?? 0;
+    render() {
+        const authenticated = this.currentUser !== null;
+        const boardsCount = this.currentUser?.boards?.length ?? 0;
         
         // Show Selector ONLY if:
         // 1. Not Loading
@@ -57,31 +79,8 @@ class AppBar extends HTMLElement {
         // Hide Title on Mobile ONLY if we are showing the selector (to save space)
         // If selector is hidden (loading or single board), we show title.
         const hideTitleOnMobile = shouldShowSelector;
-        
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host {
-                   display: block;
-                   width: 100%;
-                }
 
-                /* Title Styles */
-                h1 {
-                   margin: 0;
-                   font: var(--md-sys-typescale-title-large);
-                   color: var(--md-sys-color-on-surface);
-                   white-space: nowrap;
-                   overflow: hidden;
-                   text-overflow: ellipsis;
-                }
-
-                /* Mobile: Hide Title ONLY if selector needs space */
-                @media (max-width: 600px) {
-                    h1.hide-on-mobile {
-                        display: none;
-                    }
-                }
-            </style>
+        return html`
             <m3-app-bar>
                 <div slot="start">
                    <!-- Title: Hidden on mobile only if selector is visible -->
@@ -90,20 +89,20 @@ class AppBar extends HTMLElement {
 
                 <div slot="center">
                     ${shouldShowSelector
-                ? `
-                        <!-- Board Selector: Centers on Desktop, Shifts Left on Mobile -->
-                        <board-selector 
-                            id="board-switcher" 
-                            board-name="${this.currentBoardName}"
-                            board-id="${this.currentBoardId}">
-                        </board-selector>
+                        ? html`
+                            <!-- Board Selector: Centers on Desktop, Shifts Left on Mobile -->
+                            <board-selector 
+                                id="board-switcher" 
+                                board-name="${this.currentBoardName}"
+                                board-id="${this.currentBoardId}">
+                            </board-selector>
                         `
-                : ``
-            }
+                        : ''
+                    }
                 </div>
 
                 <div slot="end">
-                    ${authenticated ? `<user-info></user-info>` : ''}
+                    ${authenticated ? html`<user-info></user-info>` : ''}
                 </div>
             </m3-app-bar>
         `;

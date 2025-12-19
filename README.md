@@ -1,6 +1,6 @@
 # <img src="public/renard-icon.svg" width="64" alt="Renard Icon" style="vertical-align: middle;"> Chasse aux Renards
 
-> A digital reward board PWA built with Native Web Components and Material 3 Design.
+> A digital reward board PWA built with **Lit** and Material 3 Design.
 
 **Chasse aux Renards** re-imagines the classic "token economy" reward system for children as a modern, interactive Progressive Web App (PWA). It replaces cardboard charts and physical tokens with a delightful digital experience, featuring animated counting mechanics and a parent-managed reward store.
 
@@ -35,20 +35,20 @@ This project represents a modern **AI-Assisted workflow**, leveraging LLMs to ac
 3.  **Refactoring & Features**: Complex architectural changes and specific feature implementations were handled by **Google Antigravity**.
 
 **Impact on Architecture**:
-The choice of Native Web Components often comes with a trade-offs regarding boilerplate. However, in this project, the boilerplate overhead was effectively nullified by the AI workflow, which handled the verbose syntactical requirements of the DOM API. This allowed the focus to remain on the *design* of the components rather than the *typing* of them.
+The choice of specific technologies was driven by a balance of standards and ergonomics. The project started with pure Vanilla Web Components but was migrated to **Lit** to reduce boilerplate while keeping the bundle size minimal and standard-compliant.
 
 ---
 
 ## 🛠 Technical Highlights
 
-This project relies purely on modern web standards, avoiding heavy frontend frameworks.
+This project relies on modern web standards, avoiding heavy frontend frameworks.
 
-### Standard-Based Architecture (No Framework)
-Instead of React, Vue, or Angular, this application uses **Vanilla JavaScript** and **Native Web Components**.
+### Standard-Based Architecture (Powered by Lit)
+Instead of large frameworks like React or Angular, this application uses **Lit** to build lightweight, standard Web Components.
 
-*   **Custom Elements**: Every UI piece, from the `renard-counter` to the `m3-button`, is a standard `HTMLElement` with its own Shadow DOM.
+*   **Custom Elements**: Every UI piece, from the `renard-counter` to the `m3-button`, is a standard `HTMLElement` extended via `LitElement`.
 *   **Shadow DOM**: Ensures true style encapsulation and modularity.
-*   **Lifecycle Management**: Manual handling of `connectedCallback` and `attributeChangedCallback` for granular performance control.
+*   **Reactive Properties**: Declarative state management without the overhead of a virtual DOM for the entire app.
 
 ### Custom Material 3 Implementation
 The app implements the **Google Material 3** design system from scratch:
@@ -94,18 +94,3 @@ The project is powered by **Vite** for the build tooling and **Firebase** for ba
 3.  **Test Users**:
     *   **Parent**: `john.doe@example.com`
     *   **Child**: `jane.doe@example.com`
-
----
-
-## 🔍 Implementation Analysis
-
-*(Self-Review for Portfolio Context)*
-
-**Strengths**:
-*   **Performance**: Zero framework overhead leads to an extremely small bundle size and fast TTI (Time to Interactive).
-*   **Modern Workflow**: Demonstrates how AI tools can make "legacy" or "verbose" technologies (like raw DOM APIs) highly productive again.
-*   **Longevity**: The resulting code is standard-compliant and dependency-free. This is critical for a "family app" intended to last for years with **zero maintenance**, immune to the "framework rot" that plagues modern stacks.
-
-**Challenges & Trade-offs**:
-*   **Boilerplate**: Native components are historically verbose. *Mitigation: AI tooling generated 90% of the boilerplate structures.*
-*   **Complexity**: Manually managing DOM updates increases the risk of desync bugs compared to declarative frameworks, though it offers tighter control over animations.

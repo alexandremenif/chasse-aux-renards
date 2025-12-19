@@ -1,14 +1,52 @@
+import { LitElement, html, css } from 'lit';
 
-export class M3Ripple extends HTMLElement {
+export class M3Ripple extends LitElement {
+    static styles = css`
+        :host {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: inherit;
+            z-index: 0;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: currentcolor;
+            opacity: 0; 
+            transform: scale(0.2);
+            /* 
+               Expand: Standard Easing, ~450ms is good for the spread.
+               Opacity: Linear fade-in 75ms (fast entry)
+            */
+            transition: transform 450ms var(--md-sys-motion-easing-standard), 
+                        opacity 75ms linear;
+        }
+
+        .ripple.visible {
+            transform: scale(1);
+            opacity: var(--md-sys-state-pressed-state-layer-opacity); /* M3 Pressed State Opacity */
+        }
+
+        .ripple.fading-out {
+            opacity: 0 !important;
+            /* Fade out: Linear or Standard, faster than bloom. 150ms-300ms. */
+            /* Ensure transform transition is preserved so it continues expanding */
+            transition: transform 450ms var(--md-sys-motion-easing-standard), 
+                        opacity 150ms linear;
+        }
+    `;
+
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
         this._parentListeners = [];
         this._ripples = new Set(); // Track active ripples
     }
 
     connectedCallback() {
-        this.render();
+        super.connectedCallback();
         const parent = this.parentNode || this.getRootNode().host;
         if (parent) {
             // Ensure parent has a positioning context so ripple stays inside
@@ -102,6 +140,7 @@ export class M3Ripple extends HTMLElement {
     }
 
     disconnectedCallback() {
+        super.disconnectedCallback();
         this._parentListeners.forEach(({ el, type, handler }) => {
             el.removeEventListener(type, handler);
         });
@@ -172,45 +211,7 @@ export class M3Ripple extends HTMLElement {
     }
 
     render() {
-        this.shadowRoot.innerHTML = `
-            <style>
-                :host {
-                    position: absolute;
-                    inset: 0;
-                    pointer-events: none;
-                    overflow: hidden;
-                    border-radius: inherit;
-                    z-index: 0;
-                }
-
-                .ripple {
-                    position: absolute;
-                    border-radius: 50%;
-                    background-color: currentcolor;
-                    opacity: 0; 
-                    transform: scale(0.2);
-                    /* 
-                       Expand: Standard Easing, ~450ms is good for the spread.
-                       Opacity: Linear fade-in 75ms (fast entry)
-                    */
-                    transition: transform 450ms var(--md-sys-motion-easing-standard), 
-                                opacity 75ms linear;
-                }
-
-                .ripple.visible {
-                    transform: scale(1);
-                    opacity: var(--md-sys-state-pressed-state-layer-opacity); /* M3 Pressed State Opacity */
-                }
-
-                .ripple.fading-out {
-                    opacity: 0 !important;
-                    /* Fade out: Linear or Standard, faster than bloom. 150ms-300ms. */
-                    /* Ensure transform transition is preserved so it continues expanding */
-                    transition: transform 450ms var(--md-sys-motion-easing-standard), 
-                                opacity 150ms linear;
-                }
-            </style>
-        `;
+        return html``;
     }
 }
 
