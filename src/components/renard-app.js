@@ -72,17 +72,19 @@ class RenardApp extends LitElement {
         }
     `;
 
+    // Private Fields
+    #unsubscribeUser = () => { };
+    #unsubscribeBoard = () => { };
+
     constructor() {
         super();
         this.user = undefined; // Initial state: unknown
         this.boardReady = false; // Phase 3 check
-        this._unsubscribeUser = () => { };
-        this._unsubscribeBoard = () => { };
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this._unsubscribeUser = userService.onUserChanged(user => {
+        this.#unsubscribeUser = userService.onUserChanged(user => {
             this.user = user;
             
             // If user is logged out, we don't care about board
@@ -92,7 +94,7 @@ class RenardApp extends LitElement {
         });
 
         // We also need to know when board data is ready to switch Phase 2 -> 3
-        this._unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
+        this.#unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
              if (this.user) {
                  this.boardReady = true;
              }
@@ -111,11 +113,11 @@ class RenardApp extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this._unsubscribeUser();
-        this._unsubscribeBoard();
+        this.#unsubscribeUser();
+        this.#unsubscribeBoard();
     }
 
-    _onAddToken() {
+    #onAddToken() {
         boardService.addToken();
     }
 
@@ -155,7 +157,7 @@ class RenardApp extends LitElement {
                 <reward-board></reward-board>
 
                 ${isParent ? html`
-                    <m3-fab id="fab-add" size="medium" icon="add" @click="${this._onAddToken}"></m3-fab>
+                    <m3-fab id="fab-add" size="medium" icon="add" @click="${this.#onAddToken}"></m3-fab>
                 ` : ''}
 
                 <confirmation-modal id="confirmation-modal"></confirmation-modal>

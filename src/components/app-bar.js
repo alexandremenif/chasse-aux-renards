@@ -38,9 +38,11 @@ class AppBar extends LitElement {
         }
     `;
 
+    // Private Fields
+    #unsubscribeBoard = () => { };
+
     constructor() {
         super();
-        this.unsubscribeBoard = () => { };
         this.currentBoardName = '...';
         this.currentBoardId = null;
         this.isParent = false;
@@ -53,7 +55,7 @@ class AppBar extends LitElement {
         // Determine isParent immediately if possible, or wait for update
         this.isParent = this.currentUser && this.currentUser.isParent;
 
-        this.unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
+        this.#unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             if (boardData) {
                 this.currentBoardName = boardData.owner;
                 this.currentBoardId = boardData.id;
@@ -63,7 +65,7 @@ class AppBar extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.unsubscribeBoard();
+        this.#unsubscribeBoard();
     }
 
     render() {

@@ -110,11 +110,11 @@ export class M3Dialog extends LitElement {
         }
     `;
 
+    // Private Methods in Class Body (no binding needed if using arrow functions or proper event handling)
+    
     constructor() {
         super();
-        this._handleCancel = this._handleCancel.bind(this);
-        this._handleClose = this._handleClose.bind(this);
-        this._handleBackdropClick = this._handleBackdropClick.bind(this);
+        // Lit handles listener binding automatically in template if using arrow functions or this reference
     }
 
     connectedCallback() {
@@ -124,45 +124,45 @@ export class M3Dialog extends LitElement {
 
     updated(changedProperties) {
         if (changedProperties.has('visible')) {
-            this._updateVisibility();
+            this.#updateVisibility();
         }
     }
 
-    get _dialog() {
+    get #dialog() {
         return this.shadowRoot.querySelector('dialog');
     }
 
-    _updateVisibility() {
-        if (!this._dialog) return;
+    #updateVisibility() {
+        if (!this.#dialog) return;
 
         const isVisible = this.visible;
-        const isOpen = this._dialog.open;
+        const isOpen = this.#dialog.open;
 
         if (isVisible && !isOpen) {
-            this._dialog.showModal();
-            this._dialog.classList.add('visible');
+            this.#dialog.showModal();
+            this.#dialog.classList.add('visible');
         } else if (!isVisible && isOpen) {
-             this._dialog.classList.remove('visible');
-             this._dialog.close();
+             this.#dialog.classList.remove('visible');
+             this.#dialog.close();
         }
     }
 
     // Handle 'Escape' key (native cancel event)
-    _handleCancel(e) {
+    #handleCancel(e) {
         e.preventDefault(); // Prevent immediate close to allow us to control state
         this.visible = false;
     }
 
     // Handle when dialog closes (programmatically or via form method="dialog")
-    _handleClose() {
+    #handleClose() {
         if (this.visible) {
              this.visible = false;
         }
     }
 
     // Handle click on ::backdrop (it registers as a click on the dialog element)
-    _handleBackdropClick(e) {
-        const rect = this._dialog.getBoundingClientRect();
+    #handleBackdropClick(e) {
+        const rect = this.#dialog.getBoundingClientRect();
         const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
                           rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
         
@@ -174,9 +174,9 @@ export class M3Dialog extends LitElement {
     render() {
         return html`
             <dialog 
-                @cancel="${this._handleCancel}"
-                @close="${this._handleClose}"
-                @click="${this._handleBackdropClick}"
+                @cancel="${(e) => this.#handleCancel(e)}"
+                @close="${() => this.#handleClose()}"
+                @click="${(e) => this.#handleBackdropClick(e)}"
             >
                 <div class="icon-header">
                     <slot name="icon"></slot>

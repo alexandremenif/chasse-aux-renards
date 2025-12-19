@@ -44,31 +44,33 @@ class RewardBoard extends LitElement {
         }
     `;
 
+    // Private Fields
+    #unsubscribeBoard = null;
+
     constructor() {
         super();
         this.boardData = null;
-        this._unsubscribeBoard = null;
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this._unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
+        this.#unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             this.boardData = boardData;
         });
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        if (this._unsubscribeBoard) {
-            this._unsubscribeBoard();
+        if (this.#unsubscribeBoard) {
+            this.#unsubscribeBoard();
         }
     }
 
-    _handleRewardClick(rewardId) {
+    #handleRewardClick(rewardId) {
         boardService.toggleRewardSelection(rewardId);
     }
     
-    _handleRequestConfirmation(e, reward) {
+    #handleRequestConfirmation(e, reward) {
         e.stopPropagation();
         const user = userService.getCurrentUser();
         // rewardId is passed from the card usually, but here we can pass it from loop
@@ -124,8 +126,8 @@ class RewardBoard extends LitElement {
                             emoji="${reward.icon || reward.emoji || '🎁'}"
                             available-token="${availableToken}"
                             ?pending="${reward.pending}"
-                            @click="${() => this._handleRewardClick(reward.id)}"
-                            @request-confirmation="${(e) => this._handleRequestConfirmation(e, reward)}"
+                            @click="${() => this.#handleRewardClick(reward.id)}"
+                            @request-confirmation="${(e) => this.#handleRequestConfirmation(e, reward)}"
                         ></reward-card>
                     `)}
                 </div>

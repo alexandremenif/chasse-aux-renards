@@ -50,79 +50,85 @@ export class M3Menu extends LitElement {
         }
     `;
 
+    // Private Fields
+    #anchorEl = null;
+    #menuSurface = null;
+    #previousFocus = null;
+    #boundHandleKeyDown;
+    #boundHandlePopoverToggle;
+
     constructor() {
         super();
-        this._anchorEl = null;
-        this._handleKeyDown = this._handleKeyDown.bind(this);
-        this._handlePopoverToggle = this._handlePopoverToggle.bind(this);
+        this.#boundHandleKeyDown = (e) => this.#handleKeyDown(e);
+        this.#boundHandlePopoverToggle = (e) => this.#handlePopoverToggle(e);
     }
 
     set anchorElement(el) {
-        this._anchorEl = el;
+        this.#anchorEl = el;
     }
 
     get anchorElement() {
-        return this._anchorEl;
+        return this.#anchorEl;
     }
 
     firstUpdated() {
-        this._menuSurface = this.shadowRoot.querySelector('.menu-surface');
-        if (this._menuSurface) {
-            this._menuSurface.addEventListener('toggle', this._handlePopoverToggle);
-            this._menuSurface.addEventListener('keydown', this._handleKeyDown);
+        this.#menuSurface = this.shadowRoot.querySelector('.menu-surface');
+        if (this.#menuSurface) {
+            this.#menuSurface.addEventListener('toggle', this.#boundHandlePopoverToggle);
+            this.#menuSurface.addEventListener('keydown', this.#boundHandleKeyDown);
         }
     }
 
     updated(changedProperties) {
         if (changedProperties.has('visible')) {
             if (this.visible) {
-                this._show();
+                this.#show();
             } else {
-                this._hide();
+                this.#hide();
             }
         }
 
         if (changedProperties.has('anchor')) {
              const root = this.getRootNode();
              if (root && this.anchor) {
-                 this._anchorEl = root.getElementById(this.anchor);
+                 this.#anchorEl = root.getElementById(this.anchor);
              }
         }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        if (this._menuSurface) {
-            this._menuSurface.removeEventListener('toggle', this._handlePopoverToggle);
-            this._menuSurface.removeEventListener('keydown', this._handleKeyDown);
+        if (this.#menuSurface) {
+            this.#menuSurface.removeEventListener('toggle', this.#boundHandlePopoverToggle);
+            this.#menuSurface.removeEventListener('keydown', this.#boundHandleKeyDown);
         }
     }
 
-    _show() {
-        if (!this._menuSurface) return;
+    #show() {
+        if (!this.#menuSurface) return;
         
         // Prevent double open if already open
-        if (this._menuSurface.matches(':popover-open')) return;
+        if (this.#menuSurface.matches(':popover-open')) return;
 
         // Positioning Logic (Native JS, Top Layer)
-        if (this._anchorEl) {
-           this._updatePosition();
+        if (this.#anchorEl) {
+           this.#updatePosition();
         }
 
         try {
-            this._menuSurface.showPopover();
+            this.#menuSurface.showPopover();
             // Focus first item
             const firstItem = this.querySelector('[role="menuitem"], button, m3-menu-item');
             if (firstItem) firstItem.focus();
             
-            this._previousFocus = document.activeElement;
+            this.#previousFocus = document.activeElement;
         } catch (e) {
             console.error('Popover API not supported or error showing:', e);
         }
     }
 
-    _updatePosition() {
-        const anchorRect = this._anchorEl.getBoundingClientRect();
+    #updatePosition() {
+        const anchorRect = this.#anchorEl.getBoundingClientRect();
         
         let top = anchorRect.bottom + 4; // 4px gap
         let left = anchorRect.left;
@@ -130,42 +136,42 @@ export class M3Menu extends LitElement {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
-        this._menuSurface.style.position = 'fixed';
-        this._menuSurface.style.margin = '0';
+        this.#menuSurface.style.position = 'fixed';
+        this.#menuSurface.style.margin = '0';
         
         // Alignment
         const alignment = this.alignment || 'start';
         
         if (alignment === 'end') {
             left = anchorRect.right; 
-             this._menuSurface.style.left = 'auto';
-             this._menuSurface.style.right = `${viewportWidth - anchorRect.right}px`;
+             this.#menuSurface.style.left = 'auto';
+             this.#menuSurface.style.right = `${viewportWidth - anchorRect.right}px`;
         } else if (alignment === 'center') {
-             this._menuSurface.style.left = `${anchorRect.left + (anchorRect.width / 2)}px`;
-             this._menuSurface.style.transform = 'translateX(-50%)';
+             this.#menuSurface.style.left = `${anchorRect.left + (anchorRect.width / 2)}px`;
+             this.#menuSurface.style.transform = 'translateX(-50%)';
         } else {
-             this._menuSurface.style.left = `${left}px`;
-             this._menuSurface.style.right = 'auto';
+             this.#menuSurface.style.left = `${left}px`;
+             this.#menuSurface.style.right = 'auto';
         }
 
-        this._menuSurface.style.top = `${top}px`;
-        this._menuSurface.style.bottom = 'auto';
+        this.#menuSurface.style.top = `${top}px`;
+        this.#menuSurface.style.bottom = 'auto';
 
         // Check overflow (naive)
         if (top + 200 > viewportHeight) {
             // Flip
-             this._menuSurface.style.top = 'auto';
-             this._menuSurface.style.bottom = `${viewportHeight - anchorRect.top + 4}px`;
+             this.#menuSurface.style.top = 'auto';
+             this.#menuSurface.style.bottom = `${viewportHeight - anchorRect.top + 4}px`;
         }
     }
 
-    _hide() {
-        if (this._menuSurface && this._menuSurface.matches(':popover-open')) {
-            this._menuSurface.hidePopover();
+    #hide() {
+        if (this.#menuSurface && this.#menuSurface.matches(':popover-open')) {
+            this.#menuSurface.hidePopover();
         }
     }
 
-    _handlePopoverToggle(e) {
+    #handlePopoverToggle(e) {
         // "beforetoggle" or "toggle"
         // If state is "closed", sync attribute
         if (e.newState === 'closed') {
@@ -175,14 +181,14 @@ export class M3Menu extends LitElement {
                 this.dispatchEvent(new CustomEvent('close'));
                 
                 // Restore focus
-                if (this._previousFocus && this._previousFocus.focus) {
-                    this._previousFocus.focus();
+                if (this.#previousFocus && this.#previousFocus.focus) {
+                    this.#previousFocus.focus();
                 }
              }
         }
     }
 
-    _handleKeyDown(e) {
+    #handleKeyDown(e) {
         const items = Array.from(this.querySelectorAll('[role="menuitem"], button, m3-menu-item'));
         if (!items.length) return;
 
@@ -202,11 +208,11 @@ export class M3Menu extends LitElement {
                 break;
             case 'Escape':
                 e.preventDefault();
-                this._hide();
+                this.#hide();
                 break;
             case 'Tab':
                 // Close on tab out
-                 this._hide(); 
+                 this.#hide(); 
                  break;
         }
     }

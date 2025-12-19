@@ -160,7 +160,7 @@ class RewardCard extends LitElement {
         this.pending = false;
     }
 
-    _handleConfirmClick(e) {
+    #handleConfirmClick(e) {
         e.stopPropagation();
         this.dispatchEvent(new CustomEvent('request-confirmation', {
             bubbles: true,
@@ -207,7 +207,7 @@ class RewardCard extends LitElement {
                             variant="filled"
                             aria-label="Valider la récompense"
                             icon="check"
-                            @click="${this._handleConfirmClick}"
+                            @click="${(e) => this.#handleConfirmClick(e)}"
                         ></m3-icon-button>
                     ` : nothing}
                 </div>

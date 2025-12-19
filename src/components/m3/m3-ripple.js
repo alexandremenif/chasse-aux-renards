@@ -39,10 +39,14 @@ export class M3Ripple extends LitElement {
         }
     `;
 
+    // Private Fields
+    #parentListeners = [];
+    #ripples = new Set();
+    #touchStartTimer = null;
+    #isTouchAction = false;
+
     constructor() {
         super();
-        this._parentListeners = [];
-        this._ripples = new Set(); // Track active ripples
     }
 
     connectedCallback() {
@@ -56,50 +60,50 @@ export class M3Ripple extends LitElement {
             }
 
             // Touch handling state
-            this._touchStartTimer = null;
-            this._isTouchAction = false;
+            this.#touchStartTimer = null;
+            this.#isTouchAction = false;
 
             const handlePointerDown = (e) => {
                 // If touch, delay slightly to check for scroll
                 if (e.pointerType === 'touch') {
-                    this._isTouchAction = true;
-                    this._touchStartTimer = setTimeout(() => {
-                        if (this._isTouchAction) {
+                    this.#isTouchAction = true;
+                    this.#touchStartTimer = setTimeout(() => {
+                        if (this.#isTouchAction) {
                             this.startRipple(e);
                         }
                     }, 75); // 75ms delay to filter scrolls
                 } else {
-                    this._isTouchAction = false;
+                    this.#isTouchAction = false;
                     this.startRipple(e);
                 }
             };
             
             const handlePointerUp = (e) => {
-                if (this._touchStartTimer) {
-                    clearTimeout(this._touchStartTimer);
-                    this._touchStartTimer = null;
+                if (this.#touchStartTimer) {
+                    clearTimeout(this.#touchStartTimer);
+                    this.#touchStartTimer = null;
                 }
-                this._isTouchAction = false;
+                this.#isTouchAction = false;
                 this.endRipple();
             };
 
             const handlePointerLeave = (e) => {
                  // On touch, leave often happens on scroll cancellation
-                 if (this._touchStartTimer) {
-                    clearTimeout(this._touchStartTimer);
-                    this._touchStartTimer = null;
+                 if (this.#touchStartTimer) {
+                    clearTimeout(this.#touchStartTimer);
+                    this.#touchStartTimer = null;
                 }
-                 this._isTouchAction = false;
+                 this.#isTouchAction = false;
                  this.endRipple();
             };
             
             // Handle pointercancel for scrolling on mobile
             const handlePointerCancel = (e) => {
-                 if (this._touchStartTimer) {
-                    clearTimeout(this._touchStartTimer);
-                    this._touchStartTimer = null;
+                 if (this.#touchStartTimer) {
+                    clearTimeout(this.#touchStartTimer);
+                    this.#touchStartTimer = null;
                 }
-                this._isTouchAction = false;
+                this.#isTouchAction = false;
                 this.endRipple();
             };
 
@@ -128,7 +132,7 @@ export class M3Ripple extends LitElement {
             parent.addEventListener('keydown', handleKeyDown);
             parent.addEventListener('keyup', handleKeyUp);
             
-            this._parentListeners.push(
+            this.#parentListeners.push(
                 { el: parent, type: 'pointerdown', handler: handlePointerDown },
                 { el: parent, type: 'pointerup', handler: handlePointerUp },
                 { el: parent, type: 'pointerleave', handler: handlePointerLeave },
@@ -141,10 +145,10 @@ export class M3Ripple extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this._parentListeners.forEach(({ el, type, handler }) => {
+        this.#parentListeners.forEach(({ el, type, handler }) => {
             el.removeEventListener(type, handler);
         });
-        this._parentListeners = [];
+        this.#parentListeners = [];
     }
 
     startRipple(event) {
@@ -171,7 +175,7 @@ export class M3Ripple extends LitElement {
         // Store metadata on the DOM element for cleanup logic
         ripple._startTime = Date.now();
         ripple._state = 'blooming'; // blooming -> visible -> fading
-        this._ripples.add(ripple);
+        this.#ripples.add(ripple);
 
         // Animate Scale In
         requestAnimationFrame(() => {
@@ -188,7 +192,7 @@ export class M3Ripple extends LitElement {
         const now = Date.now();
         const minDuration = 200;
 
-        this._ripples.forEach(ripple => {
+        this.#ripples.forEach(ripple => {
             if (ripple._state === 'fading') return; // Already dying
 
             const elapsedTime = now - ripple._startTime;
@@ -203,7 +207,7 @@ export class M3Ripple extends LitElement {
                 ripple.addEventListener('transitionend', (e) => {
                     if (e.propertyName === 'opacity') {
                         ripple.remove();
-                        this._ripples.delete(ripple);
+                        this.#ripples.delete(ripple);
                     }
                 }, { once: true }); // Ensure one-time cleanup
             }, remainingTime);

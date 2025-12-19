@@ -30,6 +30,9 @@ class BoardSelector extends LitElement {
         }
     `;
 
+    // Private Fields
+    #boundUpdateAlignment;
+
     constructor() {
         super();
         this.boardName = '...';
@@ -37,6 +40,7 @@ class BoardSelector extends LitElement {
         this.boards = [];
         this.menuVisible = false;
         this.menuAlignment = 'center';
+        this.#boundUpdateAlignment = this.#updateAlignment.bind(this);
     }
 
     connectedCallback() {
@@ -47,16 +51,16 @@ class BoardSelector extends LitElement {
             this.boards = user.boards;
         }
         
-        this._updateAlignment();
-        window.addEventListener('resize', this._updateAlignment.bind(this));
+        this.#updateAlignment();
+        window.addEventListener('resize', this.#boundUpdateAlignment);
     }
     
     disconnectedCallback() {
         super.disconnectedCallback();
-        window.removeEventListener('resize', this._updateAlignment.bind(this));
+        window.removeEventListener('resize', this.#boundUpdateAlignment);
     }
 
-    _updateAlignment() {
+    #updateAlignment() {
         const isMobile = window.matchMedia('(max-width: 600px)').matches;
         this.menuAlignment = isMobile ? 'start' : 'center';
     }
@@ -66,11 +70,11 @@ class BoardSelector extends LitElement {
         this.menuVisible = false;
     }
     
-    _toggleMenu() {
+    #toggleMenu() {
         this.menuVisible = !this.menuVisible;
     }
     
-    _handleMenuClose() {
+    #handleMenuClose() {
         this.menuVisible = false;
     }
 
@@ -113,7 +117,7 @@ class BoardSelector extends LitElement {
                 label="${this.boardName}"
                 icon="${this.isParent ? 'expand_more' : ''}"
                 ?disabled="${!this.isParent}"
-                @click="${this.isParent ? this._toggleMenu : null}"
+                @click="${this.isParent ? () => this.#toggleMenu() : null}"
             >
                 ${this.isParent ? html`<m3-icon slot="icon" name="expand_more" size="20px"></m3-icon>` : ''}
             </m3-button>
@@ -124,7 +128,7 @@ class BoardSelector extends LitElement {
                     anchor="selector-btn" 
                     alignment="${this.menuAlignment}"
                     ?visible="${this.menuVisible}"
-                    @close="${this._handleMenuClose}"
+                    @close="${() => this.#handleMenuClose()}"
                 >
                    ${menuItemsHTML}
                 </m3-menu>

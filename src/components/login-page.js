@@ -28,7 +28,7 @@ class LoginPage extends LitElement {
         }
     `;
 
-    _handleLogin() {
+    #handleLogin() {
         userService.signIn();
     }
 
@@ -36,7 +36,7 @@ class LoginPage extends LitElement {
         return html`
             <h1>La Chasse aux Renards</h1>
             <p>Connectez-vous pour commencer à suivre vos récompenses.</p>
-            <m3-button variant="filled" label="Se connecter avec Google" @click="${this._handleLogin}"></m3-button>
+            <m3-button variant="filled" label="Se connecter avec Google" @click="${() => this.#handleLogin()}"></m3-button>
         `;
     }
 }

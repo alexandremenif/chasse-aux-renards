@@ -24,7 +24,7 @@ class ConfirmationModal extends LitElement {
         this.visible = false;
     }
 
-    _handleConfirm() {
+    #handleConfirm() {
         this.dispatchEvent(new CustomEvent('confirmed'));
         this.close();
     }
@@ -36,7 +36,7 @@ class ConfirmationModal extends LitElement {
                 <p id="msg-body">${this.message}</p>
                 <div slot="actions">
                     <m3-button variant="text" label="Annuler" id="cancel-btn" @click="${this.close}"></m3-button>
-                    <m3-button variant="text" label="Confirmer" id="confirm-btn" @click="${this._handleConfirm}"></m3-button>
+                    <m3-button variant="text" label="Confirmer" id="confirm-btn" @click="${() => this.#handleConfirm()}"></m3-button>
                 </div>
             </m3-dialog>
         `;

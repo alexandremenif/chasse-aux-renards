@@ -114,7 +114,11 @@ export class M3MenuItem extends LitElement {
 
     constructor() {
         super();
+        this.#boundHandleKeyDown = (e) => this.#handleKeyDown(e);
     }
+    
+    // Private
+    #boundHandleKeyDown;
 
     connectedCallback() {
         super.connectedCallback();
@@ -122,12 +126,12 @@ export class M3MenuItem extends LitElement {
         if (!this.hasAttribute('tabindex')) {
             this.setAttribute('tabindex', this.disabled ? '-1' : '0');
         }
-        this.addEventListener('keydown', this._handleKeyDown.bind(this));
+        this.addEventListener('keydown', this.#boundHandleKeyDown);
     }
 
     /* Lit handles attribute changes in properties */
 
-    _handleKeyDown(e) {
+    #handleKeyDown(e) {
         if (this.disabled) return;
 
         if (e.key === 'Enter' || e.key === ' ') {

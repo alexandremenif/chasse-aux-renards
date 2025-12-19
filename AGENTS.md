@@ -44,7 +44,7 @@ See [README.md](./README.md) for detailed instructions on starting the environme
 - **Internal State**: Use Lit's `static properties`.
   - `{ type: Object/Boolean/String }` for reactive public properties.
   - `{ state: true }` for internal reactive state.
-  - Use **private fields** (`#field`) for non-reactive internal state or helpers.
+  - Use **private fields** (`#field`, `#method`) for ANY internal state, helpers, or handlers that are not part of the reactive public API. Do NOT use `_` prefix.
 - **Services**: Use singleton services (e.g., `user-service.js`) for shared state and business logic.
 - **Events**: Use `this.dispatchEvent(new CustomEvent(...))` for child-to-parent communication.
 - **Observables**: Services may expose methods to subscribe to state changes (e.g., `onUserChanged`).

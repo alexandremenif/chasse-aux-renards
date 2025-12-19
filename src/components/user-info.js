@@ -101,15 +101,15 @@ class UserInfo extends LitElement {
         this.user = userService.getCurrentUser();
     }
     
-    _toggleMenu() {
+    #toggleMenu() {
         this.menuVisible = !this.menuVisible;
     }
     
-    _handleMenuClose() {
+    #handleMenuClose() {
         this.menuVisible = false;
     }
 
-    _handleLogout() {
+    #handleLogout() {
         userService.signOut();
         this.menuVisible = false;
     }
@@ -133,7 +133,7 @@ class UserInfo extends LitElement {
 
         return html`
             <div class="relative-container">
-                <button id="avatar-btn" class="avatar-btn" @click="${this._toggleMenu}">
+                <button id="avatar-btn" class="avatar-btn" @click="${() => this.#toggleMenu()}">
                     <m3-ripple></m3-ripple>
                     <m3-avatar 
                         src="${this.user.photoURL || ''}" 
@@ -148,7 +148,7 @@ class UserInfo extends LitElement {
                     anchor="avatar-btn" 
                     alignment="end"
                     ?visible="${this.menuVisible}"
-                    @close="${this._handleMenuClose}"
+                    @close="${() => this.#handleMenuClose()}"
                 >
                     <!-- Header (User Info) -->
                     <div class="user-details">
@@ -170,7 +170,7 @@ class UserInfo extends LitElement {
                         icon="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 00-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"
                         label="Déconnexion"
                         style="--md-sys-color-on-surface: var(--md-sys-color-error); --md-sys-color-on-surface-variant: var(--md-sys-color-error);"
-                        @click="${this._handleLogout}"
+                        @click="${() => this.#handleLogout()}"
                     >
                     </m3-menu-item>
                 </m3-menu>

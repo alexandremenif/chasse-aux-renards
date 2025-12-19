@@ -104,7 +104,7 @@ export class M3Card extends LitElement {
         this.variant = 'filled';
     }
 
-    _handleKeyDown(e) {
+    #handleKeyDown(e) {
         if (this.clickable && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault();
             this.click();
@@ -118,7 +118,7 @@ export class M3Card extends LitElement {
                 part="card"
                 tabindex="${this.clickable ? '0' : '-1'}"
                 role="${this.clickable ? 'button' : 'section'}"
-                @keydown="${this._handleKeyDown}"
+                @keydown="${(e) => this.#handleKeyDown(e)}"
             >
                 <div class="tint-layer"></div>
                 <div class="state-layer"></div>
