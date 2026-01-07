@@ -2,12 +2,14 @@
 import { LitElement, html, css, unsafeCSS } from 'lit';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
+import { ApplicationError } from '../common/application-error.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
 import './login-page.js';
 import './app-bar.js';
 import './reward-board.js';
 import './confirmation-modal.js';
 import './m3/m3-loading-indicator.js';
+import './m3/m3-snackbar.js';
 
 // M3 Components
 import './m3/m3-fab.js';
@@ -75,6 +77,28 @@ class RenardApp extends LitElement {
     // Private Fields
     #unsubscribeUser = () => { };
     #unsubscribeBoard = () => { };
+    #errorHandler = (event) => {
+        // Handle Promise Rejections (event.reason) and standard Errors (event.message)
+        let error = event;
+        if (event instanceof PromiseRejectionEvent) {
+             error = event.reason;
+        } else if (event instanceof ErrorEvent) {
+             error = event.error;
+        }
+
+        let message = '';
+        if (error instanceof ApplicationError) {
+             message = error.message;
+        } else {
+             console.error("Unexpected Error:", error);
+             message = 'Une erreur inattendue est survenue.';
+        }
+
+        const snackbar = this.shadowRoot.querySelector('#error-snackbar');
+        if (snackbar) {
+            snackbar.show(message);
+        }
+    };
 
     constructor() {
         super();
@@ -84,6 +108,11 @@ class RenardApp extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
+        
+        // Global Error Listeners
+        window.addEventListener('error', this.#errorHandler);
+        window.addEventListener('unhandledrejection', this.#errorHandler);
+
         this.#unsubscribeUser = userService.onUserChanged(user => {
             this.user = user;
             
@@ -115,13 +144,15 @@ class RenardApp extends LitElement {
         super.disconnectedCallback();
         this.#unsubscribeUser();
         this.#unsubscribeBoard();
+        window.removeEventListener('error', this.#errorHandler);
+        window.removeEventListener('unhandledrejection', this.#errorHandler);
     }
 
     #onAddToken() {
         boardService.addToken();
     }
 
-    render() {
+    renderContent() {
         // Phase 1: Checking User
         if (this.user === undefined) {
              return html`
@@ -162,6 +193,13 @@ class RenardApp extends LitElement {
 
                 <confirmation-modal id="confirmation-modal"></confirmation-modal>
             </div>
+        `;
+    }
+
+    render() {
+        return html`
+            ${this.renderContent()}
+            <m3-snackbar id="error-snackbar"></m3-snackbar>
         `;
     }
 }
