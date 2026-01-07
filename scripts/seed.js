@@ -38,6 +38,12 @@ async function seedDatabase() {
       googleUid: 'google-uid-child2',
       email: 'jimmy.doe@example.com',
       displayName: 'Jimmy Doe',
+    },
+    {
+      uid: 'no-access-uid',
+      googleUid: 'google-uid-no-access',
+      email: 'no.access@example.com',
+      displayName: 'No Access User',
     }
   ];
 
@@ -68,7 +74,7 @@ async function seedDatabase() {
     console.error('Error importing users (they might already exist):', error.message);
   }
 
-  const [parentUser, child1User, child2User] = usersData;
+  const [parentUser, child1User, child2User, noAccessUser] = usersData;
 
   // --- Create Firestore User Documents ---
   const parentRef = db.collection('users').doc(parentUser.uid);
