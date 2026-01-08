@@ -163,7 +163,7 @@ class RewardCard extends LitElement {
     #handleConfirmClick(e) {
         e.stopPropagation();
         this.dispatchEvent(new CustomEvent('request-confirmation', {
-            bubbles: true,
+            bubbles: false,
             composed: true
         }));
     }

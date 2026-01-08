@@ -128,16 +128,6 @@ class RenardApp extends LitElement {
                  this.boardReady = true;
              }
         });
-
-        this.addEventListener('show-confirmation-modal', (event) => {
-            const modal = this.shadowRoot.querySelector('#confirmation-modal');
-            if (modal) {
-                modal.setAttribute('title', event.detail.title);
-                modal.setAttribute('message', event.detail.message);
-                modal.addEventListener('confirmed', event.detail.onConfirm, { once: true });
-                modal.setAttribute('visible', 'true');
-            }
-        });
     }
 
     disconnectedCallback() {
@@ -150,6 +140,17 @@ class RenardApp extends LitElement {
 
     #onAddToken() {
         boardService.addToken();
+    }
+
+    #handleShowConfirmation(event) {
+        const modal = this.shadowRoot.querySelector('#confirmation-modal');
+        if (modal) {
+            modal.setAttribute('title', event.detail.title);
+            modal.setAttribute('message', event.detail.message);
+             // Note: event.detail.onConfirm is a callback function passed from the child
+            modal.addEventListener('confirmed', event.detail.onConfirm, { once: true });
+            modal.setAttribute('visible', 'true');
+        }
     }
 
     renderContent() {
@@ -185,7 +186,7 @@ class RenardApp extends LitElement {
         return html`
             <div class="app-container">
                 <app-bar></app-bar>
-                <reward-board></reward-board>
+                <reward-board @show-confirmation-modal="${this.#handleShowConfirmation}"></reward-board>
 
                 ${isParent ? html`
                     <m3-fab id="fab-add" size="medium" icon="add" @click="${this.#onAddToken}"></m3-fab>

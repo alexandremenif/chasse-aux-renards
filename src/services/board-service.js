@@ -29,7 +29,6 @@ class BoardService {
       } else {
         this.currentBoardId = null;
         this.currentBoardData = null;
-        localStorage.removeItem(LAST_SELECTED_BOARD_KEY);
         this.unsubscribeFromBoard();
         this.unsubscribeFromRewards();
         this.#notifyBoardSubscribers(null);

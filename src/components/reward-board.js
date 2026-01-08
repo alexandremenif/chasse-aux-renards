@@ -71,18 +71,13 @@ class RewardBoard extends LitElement {
     }
     
     #handleRequestConfirmation(e, reward) {
-        e.stopPropagation();
         const user = userService.getCurrentUser();
-        // rewardId is passed from the card usually, but here we can pass it from loop
-        // The event from reward-card will have bubbles: true, but we can simplify by handling logic here if we pass data down or listen on item.
-        // Actually, listener on element in template is cleaner.
-        
         const rewardLabel = reward.name || reward.label || 'Récompense';
         const rewardCost = reward.cost;
         
         if (user && user.isParent) {
              this.dispatchEvent(new CustomEvent('show-confirmation-modal', {
-                bubbles: true,
+                bubbles: false,
                 composed: true,
                 detail: {
                     title: `Valider "${rewardLabel}" ?`,
@@ -102,7 +97,7 @@ class RewardBoard extends LitElement {
             `;
         }
 
-        const { totalToken, availableToken, rewards } = this.boardData;
+        const { availableToken, rewards } = this.boardData;
         const rewardsList = rewards ? Object.values(rewards) : [];
 
         // Sort
