@@ -1,6 +1,6 @@
 
 // components/reward-board.js
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';

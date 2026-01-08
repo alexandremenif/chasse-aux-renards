@@ -5,7 +5,7 @@ import { userService } from '../services/user-service.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
 import './renard-icon.js';
 import './m3/m3-card.js';
-import './m3/m3-icon.js';
+
 import './m3/m3-icon-button.js';
 
 class RewardCard extends LitElement {

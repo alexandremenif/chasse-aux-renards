@@ -1,7 +1,7 @@
 // services/board-service.js
 import { userService } from './user-service';
 import { db } from '../firebase';
-import { doc, collection, onSnapshot, updateDoc, runTransaction, serverTimestamp, FieldValue, increment } from 'firebase/firestore';
+import { doc, collection, onSnapshot, updateDoc, runTransaction, increment } from 'firebase/firestore';
 
 const LAST_SELECTED_BOARD_KEY = 'lastSelectedBoardId';
 

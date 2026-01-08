@@ -3,7 +3,7 @@ import { LitElement, html, css } from 'lit';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import './user-info.js';
-import './m3/m3-icon.js';
+
 import './board-selector.js';
 
 class AppBar extends LitElement {
