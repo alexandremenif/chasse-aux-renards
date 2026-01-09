@@ -2,7 +2,6 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { v4 as uuidv4 } from 'uuid';
 
 // Manually set the environment variables to point to the running emulators.
 process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
@@ -137,6 +136,16 @@ async function seedDatabase() {
     await board2Ref.collection('rewards').add(reward);
   }
   console.log(`Created board and rewards for ${child2User.displayName}`);
+
+  // --- Create API Key for Parent ---
+  await db.collection('api_keys').add({
+      uid: parentUser.uid,
+      key: 'test-api-key-123',
+      label: 'Test Key',
+      createdAt: new Date()
+  });
+  console.log("Created test API key: test-api-key-123 for parent");
+
 
   console.log('Database seeding completed successfully!');
 }

@@ -14,11 +14,13 @@ import './m3/m3-snackbar.js';
 // M3 Components
 import './m3/m3-fab.js';
 import './m3/m3-app-bar.js';
+import './settings-page.js';
 
 class RenardApp extends LitElement {
     static properties = {
         user: { type: Object },
-        boardReady: { type: Boolean }
+        boardReady: { type: Boolean },
+        view: { type: String } // 'home' | 'settings'
     };
 
     static styles = css`
@@ -104,10 +106,12 @@ class RenardApp extends LitElement {
         super();
         this.user = undefined; // Initial state: unknown
         this.boardReady = false; // Phase 3 check
+        this.view = 'home';
     }
 
     connectedCallback() {
         super.connectedCallback();
+        this.addEventListener('navigate', this.#handleNavigate);
         
         // Global Error Listeners
         window.addEventListener('error', this.#errorHandler);
@@ -132,6 +136,7 @@ class RenardApp extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.removeEventListener('navigate', this.#handleNavigate);
         this.#unsubscribeUser();
         this.#unsubscribeBoard();
         window.removeEventListener('error', this.#errorHandler);
@@ -153,6 +158,10 @@ class RenardApp extends LitElement {
         }
     }
 
+    #handleNavigate = (e) => {
+        this.view = e.detail.view || 'home';
+    }
+
     renderContent() {
         // Phase 1: Checking User
         if (this.user === undefined) {
@@ -167,6 +176,11 @@ class RenardApp extends LitElement {
         // Phase 1b: Login
         if (this.user === null) {
             return html`<login-page></login-page>`;
+        }
+
+        // View Routing
+        if (this.view === 'settings') {
+             return html`<settings-page @navigate="${this.#handleNavigate}"></settings-page>`;
         }
 
         // Phase 2: User Found, Board Loading
