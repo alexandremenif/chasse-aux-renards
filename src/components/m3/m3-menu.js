@@ -33,7 +33,7 @@ export class M3Menu extends LitElement {
             opacity: 0;
             transform: scaleY(0.9);
             transform-origin: top left;
-            transition: opacity 0.1s ease, transform 0.1s ease, display 0.1s allow-discrete, overlay 0.1s allow-discrete;
+            transition: opacity var(--md-sys-motion-duration-extra-short) var(--md-sys-motion-easing-standard), transform var(--md-sys-motion-duration-extra-short) var(--md-sys-motion-easing-standard), display var(--md-sys-motion-duration-extra-short) allow-discrete, overlay var(--md-sys-motion-duration-extra-short) allow-discrete;
         }
 
         :popover-open {
@@ -136,25 +136,60 @@ export class M3Menu extends LitElement {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
-        this.#menuSurface.style.position = 'fixed';
+        this.#menuSurface.style.position = 'absolute';
         this.#menuSurface.style.margin = '0';
         
         // Alignment
         const alignment = this.alignment || 'start';
         
+        // Add scroll offsets for absolute positioning
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
+        
         if (alignment === 'end') {
-            left = anchorRect.right; 
+            // Right aligned: position right edge at anchor right
              this.#menuSurface.style.left = 'auto';
-             this.#menuSurface.style.right = `${viewportWidth - anchorRect.right}px`;
+             // document width - (anchor right + scroll) ... wait. 
+             // simpler: right relative to viewport? No, absolute is relative to document.
+             // right = documentWidth - (anchorRight + scrollX)
+             // Let's stick to left for absolute if possible, or right relative to Containing Block.
+             // Since it's Top Layer, CB is ICB (viewport size but scrollable?). 
+             // Actually, 'right' property on absolute element in top layer is relative to right edge of ICB.
+             // It's safer to calculate Left:
+             // Left = Anchor Right + ScrollX - MenuWidth. 
+             // We don't know MenuWidth easily without layout.
+             // But we can use style.right if we know document width? No.
+             // Let's stick to using 'left' but calculated.
+             // Wait, if alignment is end, we want menu's right edge to align with anchor's right edge.
+             // Left = (AnchorRect.right + ScrollX) - MenuRect.width.
+             // Getting MenuRect requires it to be visible. It is about to be shown.
+             // If we use 'right' property: right: calc(100vw - (rect.right + scrollX)) ? No. 
+             // Let's just use Left for everything to be safe.
+             
+             // For simplify, let's keep the existing logic but add scroll:
+             // Original: left = anchorRect.right; style.right = (viewport - right)
+             // Absolute: 
+             //   style.left = anchorRect.right + scrollX - menuWidth?
+             // let's try to just simply offset Top/Left for now and assume 'start' alignment for robustness, 
+             // or handle 'end' by setting left properly.
+             
+             // Actually, the previous code for 'end' was:
+             // this.#menuSurface.style.right = `${viewportWidth - anchorRect.right}px`;
+             // For absolute: this.#menuSurface.style.right = `${document.documentElement.clientWidth - (anchorRect.right + scrollX)}px` ?
+             
+             // Let's stick to the simplest robustness fix: Absolute + Top/Left.
+             // If alignment is end, we need menu width.
+             this.#menuSurface.style.left = 'auto';
+             this.#menuSurface.style.right = `${document.documentElement.clientWidth - (anchorRect.right + scrollX)}px`;
         } else if (alignment === 'center') {
-             this.#menuSurface.style.left = `${anchorRect.left + (anchorRect.width / 2)}px`;
+             this.#menuSurface.style.left = `${anchorRect.left + (anchorRect.width / 2) + scrollX}px`;
              this.#menuSurface.style.transform = 'translateX(-50%)';
         } else {
-             this.#menuSurface.style.left = `${left}px`;
+             this.#menuSurface.style.left = `${left + scrollX}px`;
              this.#menuSurface.style.right = 'auto';
         }
 
-        this.#menuSurface.style.top = `${top}px`;
+        this.#menuSurface.style.top = `${top + scrollY}px`;
         this.#menuSurface.style.bottom = 'auto';
 
         // Check overflow (naive)

@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import './m3-ripple.js';
+import './m3-icon.js';
 
 export class M3Button extends LitElement {
     static properties = {
@@ -7,8 +8,13 @@ export class M3Button extends LitElement {
         disabled: { type: Boolean, reflect: true },
         icon: { type: String },
         label: { type: String },
-        ariaLabel: { type: String, attribute: 'aria-label' }
+        ariaLabel: { type: String, attribute: 'aria-label' },
+        type: { type: String }, // submit, reset, button
+        name: { type: String },
+        value: { type: String }
     };
+
+    static formAssociated = true;
 
     static shadowRootOptions = { mode: 'open', delegatesFocus: true };
 
@@ -19,7 +25,8 @@ export class M3Button extends LitElement {
             justify-content: center;
             vertical-align: middle;
             font: var(--md-sys-typescale-label-large);
-            height: 48px; /* Touch target enforcement */
+            height: var(--md-sys-component-touch-target-size, 48px); /* Touch target enforcement */
+            -webkit-tap-highlight-color: transparent;
         }
         button {
             display: inline-flex;
@@ -98,27 +105,17 @@ export class M3Button extends LitElement {
             box-shadow: var(--md-sys-elevation-0); /* Depress on click */
         }
 
-        .tonal {
+        .filled-tonal {
             background-color: var(--md-sys-color-secondary-container);
             color: var(--md-sys-color-on-secondary-container);
         }
-        .tonal::after { background-color: var(--md-sys-color-on-secondary-container); }
+        .filled-tonal::after { background-color: var(--md-sys-color-on-secondary-container); }
 
-        .tonal:hover:not(:disabled) {
+        .filled-tonal:hover:not(:disabled) {
             box-shadow: var(--md-sys-elevation-1);
         }
-        .tonal:active:not(:disabled) {
+        .filled-tonal:active:not(:disabled) {
             box-shadow: var(--md-sys-elevation-0);
-        }
-
-        .primary-tonal {
-            background-color: var(--md-sys-color-primary-container);
-            color: var(--md-sys-color-on-primary-container);
-        }
-        .primary-tonal::after { background-color: var(--md-sys-color-on-primary-container); }
-
-        .primary-tonal:hover:not(:disabled) {
-            box-shadow: var(--md-sys-elevation-1);
         }
 
         .text {
@@ -180,15 +177,56 @@ export class M3Button extends LitElement {
         }
     `;
 
+    #internals;
+    
+    // Computed property for render
+    #normalizedVariant = 'filled';
+
+    constructor() {
+        super();
+        this.#internals = this.attachInternals();
+        this.variant = 'filled';
+        this.type = 'submit'; // Default to standard button behavior (submit)
+    }
+
+    willUpdate(changedProperties) {
+        if (changedProperties.has('variant')) {
+            let v = this.variant || 'filled';
+            if (v === 'tonal' || v === 'primary-tonal') {
+                this.#normalizedVariant = 'filled-tonal';
+            } else {
+                this.#normalizedVariant = v;
+            }
+        }
+    }
+    
+    #handleClick(e) {
+        if (this.disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        if (this.type === 'submit') {
+            this.#internals.form?.requestSubmit();
+        } else if (this.type === 'reset') {
+            this.#internals.form?.reset();
+        }
+    }
+
     render() {
-        const variant = this.variant || 'filled';
         const hasIcon = !!this.icon;
         const ariaLabel = this.ariaLabel || this.label || '';
 
         return html`
-            <button class="${variant} ${hasIcon ? 'has-icon' : ''}" ?disabled="${this.disabled}" aria-label="${ariaLabel}">
+            <button 
+                class="${this.#normalizedVariant} ${hasIcon ? 'has-icon' : ''}" 
+                ?disabled="${this.disabled}" 
+                aria-label="${ariaLabel}"
+                @click="${this.#handleClick}"
+            >
                 ${!this.disabled ? html`<m3-ripple></m3-ripple>` : ''}
-                ${hasIcon ? html`<slot name="icon"></slot>` : ''}
+                ${hasIcon ? html`<slot name="icon"><m3-icon icon="${this.icon}"></m3-icon></slot>` : ''}
                 <span class="label">${this.label}</span>
                 <slot></slot>
             </button>

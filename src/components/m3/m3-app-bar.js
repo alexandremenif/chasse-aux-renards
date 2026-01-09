@@ -17,7 +17,7 @@ export class M3AppBar extends LitElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 64px; /* Standard M3 Height */
+            height: var(--md-sys-component-top-app-bar-height, 64px); /* Standard M3 Height */
             padding: 0 16px;
         }
 
@@ -53,7 +53,7 @@ export class M3AppBar extends LitElement {
         /* Responsive: Desktop centers absolute, Mobile flows naturally */
         @media (max-width: 600px) {
             .toolbar {
-                height: 64px;
+                height: var(--md-sys-component-top-app-bar-height, 64px);
                 padding-bottom: 0;
             }
 

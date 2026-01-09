@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import './m3-ripple.js';
 
 export class M3Card extends LitElement {
@@ -53,7 +53,7 @@ export class M3Card extends LitElement {
             inset: 0;
             background-color: var(--md-sys-color-surface-tint);
             opacity: 0; /* Default */
-            transition: opacity var(--md-sys-motion-duration-short) ease;
+            transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
             pointer-events: none;
             z-index: 0;
         }
@@ -77,7 +77,7 @@ export class M3Card extends LitElement {
             inset: 0;
             background-color: var(--md-sys-color-on-surface);
             opacity: 0;
-            transition: opacity var(--md-sys-motion-duration-short) ease;
+            transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
             pointer-events: none;
             z-index: 1; /* Above tint */
         }
@@ -117,7 +117,7 @@ export class M3Card extends LitElement {
                 class="card ${this.variant || 'filled'} ${this.clickable ? 'clickable' : ''}" 
                 part="card"
                 tabindex="${this.clickable ? '0' : '-1'}"
-                role="${this.clickable ? 'button' : 'section'}"
+                role="${this.clickable ? 'button' : nothing}"
                 @keydown="${(e) => this.#handleKeyDown(e)}"
             >
                 <div class="tint-layer"></div>

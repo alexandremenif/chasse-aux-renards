@@ -3,6 +3,7 @@ import { LitElement, html, css } from 'lit';
 export class M3Icon extends LitElement {
     static properties = {
         name: { type: String },
+        icon: { type: String }, // Alias for name
         svgPath: { type: String, attribute: 'svg-path' },
         size: { type: String },
         color: { type: String }
@@ -42,18 +43,19 @@ export class M3Icon extends LitElement {
     render() {
         const size = this.size || '24px';
         const color = this.color || 'currentColor';
+        const iconName = this.name || this.icon;
         
         // Apply dynamic styles to host
         this.style.width = size;
         this.style.height = size;
         this.style.color = color;
 
-        if (this.name) {
+        if (iconName) {
             return html`
                 <span class="material-symbols-outlined" 
                       style="font-size: ${size};"
                       aria-hidden="true">
-                    ${this.name}
+                    ${iconName}
                 </span>
             `;
         }

@@ -2,16 +2,26 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /api_keys/{keyId} {
+        allow read, update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
   
     // By default, no one has access to anything.
     match /{document=**} {
       allow read, write: if false;
     }
 
+
     // Rule for the 'users' collection
     // Read-only for the owner.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Rule for MCP Keys subcollection
+      match /mcp_keys/{keyId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Rule for the 'boards' collection

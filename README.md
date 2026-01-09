@@ -94,3 +94,68 @@ The project is powered by **Vite** for the build tooling and **Firebase** for ba
 3.  **Test Users**:
     *   **Parent**: `john.doe@example.com`
     *   **Child**: `jane.doe@example.com`
+
+---
+
+## 🔌 MCP Integration (Model Context Protocol)
+
+Instead of building a traditional "backoffice" UI for managing rewards, this project embraces a **chatbot-first approach** using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Parents can manage rewards directly from their favorite AI assistant.
+
+### Why MCP?
+
+*   **No extra UI to build** — Let AI assistants handle CRUD operations via natural language.
+*   **Works with multiple clients** — Use whichever chatbot you prefer.
+*   **Conversational UX** — "Add a Nintendo Switch reward for Jimmy that costs 500 renards" is more intuitive than navigating forms.
+
+### Compatible Clients
+
+| Client | Status | Notes |
+|--------|--------|-------|
+| **Claude Desktop** | ✅ Supported | Anthropic's official app |
+| **ChatGPT** | ✅ Supported | OpenAI's chatbot |
+| **Mistral Le Chat** | ✅ Supported | Mistral's chatbot |
+| **Google Gemini** | ❌ Not yet | No MCP support (CLI only) |
+
+### Setup
+
+1. **Generate an API key** by navigating to `/mcp` in the app (hidden settings page).
+
+2. **Add the MCP server to your client config** (example for Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "chasse-aux-renards": {
+      "serverUrl": "https://europe-west9-la-chasse-aux-renards.cloudfunctions.net/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+3. **Start chatting!** Try commands like:
+   - "List all reward boards"
+   - "Add a 'Movie Night' reward for Jane that costs 20 renards"
+   - "Delete the park reward from Jimmy's board"
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `list_boards` | List all reward boards you have access to |
+| `list_rewards` | List rewards for a specific board |
+| `add_reward` | Create a new reward (name, cost, icon) |
+| `update_reward` | Modify an existing reward |
+| `delete_reward` | Remove a reward from a board |
+
+### Technical Details: HTTP-Only Transport
+
+This MCP server uses **stateless HTTP-only transport** instead of Server-Sent Events (SSE). This design choice is driven by the **serverless deployment on Firebase Cloud Functions**:
+
+*   **No persistent connections** — Each request is independent, avoiding idle connection costs.
+*   **JSON responses** — The server returns JSON directly instead of opening SSE streams.
+*   **GET requests rejected** — Only POST requests are accepted (`405 Method Not Allowed` for GET).
+
+This approach is fully compatible with the MCP specification and works with all standard clients.

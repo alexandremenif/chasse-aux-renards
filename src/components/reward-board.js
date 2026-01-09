@@ -1,9 +1,10 @@
 
 // components/reward-board.js
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
+import { M3Breakpoints } from './m3/m3-breakpoints.js';
 import './renard-counter.js';
 import './reward-card.js';
 
@@ -35,11 +36,11 @@ class RewardBoard extends LitElement {
             gap: 16px;
         }
         
-        @media (min-width: 768px) {
+        @media (min-width: ${unsafeCSS(M3Breakpoints.MEDIUM)}) {
             .rewards-container { grid-template-columns: repeat(2, 1fr); }
         }
         
-        @media (min-width: 1024px) {
+        @media (min-width: ${unsafeCSS(M3Breakpoints.EXPANDED)}) {
             .rewards-container { grid-template-columns: repeat(3, 1fr); }
         }
     `;
@@ -75,7 +76,7 @@ class RewardBoard extends LitElement {
         const rewardLabel = reward.name || reward.label || 'Récompense';
         const rewardCost = reward.cost;
         
-        if (user && user.isParent) {
+        if (user?.isParent) {
              this.dispatchEvent(new CustomEvent('show-confirmation-modal', {
                 bubbles: false,
                 composed: true,

@@ -2,7 +2,6 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { v4 as uuidv4 } from 'uuid';
 
 // Manually set the environment variables to point to the running emulators.
 process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
@@ -137,6 +136,41 @@ async function seedDatabase() {
     await board2Ref.collection('rewards').add(reward);
   }
   console.log(`Created board and rewards for ${child2User.displayName}`);
+
+
+
+  // --- Create API Keys in users/{uid}/mcp_tokens ---
+  const validKey = 'test-api-key-123';
+  const expiredKey = 'expired-api-key-456';
+  
+  // Create a date for yesterday in YYYY-MM-DD format
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  // Create a date for next year in YYYY-MM-DD format
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const nextYearStr = nextYear.toISOString().split('T')[0];
+
+  // Add keys as individual documents in the subcollection
+  // Note: 'token' field is required for collectionGroup query (FieldPath.documentId() doesn't work)
+  await db.collection('users').doc(parentUser.uid).collection('mcp_keys').doc(validKey).set({
+      token: validKey,
+      label: 'Test Key (Valid)',
+      createdAt: new Date().toISOString(),
+      expiresAt: nextYearStr
+  });
+
+  await db.collection('users').doc(parentUser.uid).collection('mcp_keys').doc(expiredKey).set({
+      token: expiredKey,
+      label: 'Test Key (Expired)',
+      createdAt: new Date().toISOString(),
+      expiresAt: yesterdayStr
+  });
+
+  console.log("Created mcp_keys subcollection for parent with valid and expired keys.");
+
 
   console.log('Database seeding completed successfully!');
 }

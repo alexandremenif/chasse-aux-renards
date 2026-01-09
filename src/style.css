@@ -125,6 +125,7 @@
     --md-sys-shape-corner-full: 9999px;
 
     /* --- Material 3 Motion Tokens --- */
+    --md-sys-motion-duration-extra-short: 100ms;
     --md-sys-motion-duration-short: 200ms;
     --md-sys-motion-duration-medium: 400ms;
     --md-sys-motion-duration-long: 600ms;
@@ -151,6 +152,11 @@
     --md-sys-z-index-dialog: 80;
     --md-sys-z-index-app-bar: 100;
     --md-sys-z-index-tooltip: 120;
+    
+    /* Global Focus Ring Tokens */
+    --md-sys-state-focus-ring-width: 3px;
+    --md-sys-state-focus-ring-offset: 2px;
+    --md-sys-state-focus-ring-color: var(--md-sys-color-secondary);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -208,13 +214,7 @@
     }
 }
 
-/* Global Focus Ring Utility & Tokens */
-:root {
-    --md-sys-state-focus-ring-width: 3px;
-    --md-sys-state-focus-ring-offset: 2px;
-    --md-sys-state-focus-ring-color: var(--md-sys-color-secondary);
-    /* Updated to Secondary for contrast */
-}
+
 
 /* Standardized Keyframes (Global Context) */
 @keyframes scaleIn {

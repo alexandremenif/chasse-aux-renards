@@ -55,22 +55,22 @@ export class M3Fab extends LitElement {
         
         /* Medium FAB (Default 56dp) */
         .medium {
-            width: 56px;
-            height: 56px;
+            width: var(--md-sys-component-fab-medium-size, 56px);
+            height: var(--md-sys-component-fab-medium-size, 56px);
             border-radius: var(--md-sys-shape-corner-large);
         }
         
         /* Real M3 Large FAB (96dp) */
         .large {
-            width: 96px;
-            height: 96px;
+            width: var(--md-sys-component-fab-large-size, 96px);
+            height: var(--md-sys-component-fab-large-size, 96px);
             border-radius: var(--md-sys-shape-corner-extra-large);
         }
         
         /* Small FAB (40dp) */
         .small {
-            width: 40px;
-            height: 40px;
+            width: var(--md-sys-component-fab-small-size, 40px);
+            height: var(--md-sys-component-fab-small-size, 40px);
             border-radius: var(--md-sys-shape-corner-medium);
         }
 

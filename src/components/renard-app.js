@@ -4,6 +4,7 @@ import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import { ApplicationError } from '../common/application-error.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
+import { router } from '../common/router.js'; // Import Router
 import './login-page.js';
 import './app-bar.js';
 import './reward-board.js';
@@ -14,11 +15,13 @@ import './m3/m3-snackbar.js';
 // M3 Components
 import './m3/m3-fab.js';
 import './m3/m3-app-bar.js';
+import './mcp-keys.js'; // Updated Import
 
 class RenardApp extends LitElement {
     static properties = {
         user: { type: Object },
-        boardReady: { type: Boolean }
+        boardReady: { type: Boolean },
+        view: { type: String } // 'home' | 'settings' | 'login'
     };
 
     static styles = css`
@@ -104,14 +107,18 @@ class RenardApp extends LitElement {
         super();
         this.user = undefined; // Initial state: unknown
         this.boardReady = false; // Phase 3 check
+        this.view = 'home';
     }
 
     connectedCallback() {
         super.connectedCallback();
+        this.addEventListener('navigate', this.#handleNavigate);
         
         // Global Error Listeners
         window.addEventListener('error', this.#errorHandler);
         window.addEventListener('unhandledrejection', this.#errorHandler);
+
+        this.#setupRouter();
 
         this.#unsubscribeUser = userService.onUserChanged(user => {
             this.user = user;
@@ -119,6 +126,8 @@ class RenardApp extends LitElement {
             // If user is logged out, we don't care about board
             if (!this.user) {
                 this.boardReady = false;
+                // Maybe redirect to login if not already there? 
+                // For now, let renderContent handle showing login-page
             }
         });
 
@@ -132,10 +141,26 @@ class RenardApp extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.removeEventListener('navigate', this.#handleNavigate);
         this.#unsubscribeUser();
         this.#unsubscribeBoard();
         window.removeEventListener('error', this.#errorHandler);
         window.removeEventListener('unhandledrejection', this.#errorHandler);
+    }
+
+    #setupRouter() {
+        router.addRoute('/', () => {
+            this.view = 'home';
+        });
+        router.addRoute('/mcp', () => {
+            this.view = 'settings';
+        });
+        router.addRoute('/login', () => {
+            // Effectively handled by user state, but good to have explicit
+            this.view = 'login'; 
+        });
+
+        router.init();
     }
 
     #onAddToken() {
@@ -153,6 +178,17 @@ class RenardApp extends LitElement {
         }
     }
 
+    #handleNavigate = (e) => {
+        const view = e.detail.view || 'home';
+        if (view === 'settings') {
+            router.navigateTo('/mcp');
+        } else if (view === 'home') {
+            router.navigateTo('/');
+        } else {
+            this.view = view;
+        }
+    }
+
     renderContent() {
         // Phase 1: Checking User
         if (this.user === undefined) {
@@ -167,6 +203,11 @@ class RenardApp extends LitElement {
         // Phase 1b: Login
         if (this.user === null) {
             return html`<login-page></login-page>`;
+        }
+
+        // View Routing
+        if (this.view === 'settings') {
+             return html`<mcp-keys @navigate="${this.#handleNavigate}"></mcp-keys>`;
         }
 
         // Phase 2: User Found, Board Loading

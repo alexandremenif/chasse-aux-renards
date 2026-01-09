@@ -36,7 +36,7 @@ export class M3MenuItem extends LitElement {
             overflow: hidden;
             gap: 12px;
             box-sizing: border-box;
-            transition: background-color 0.2s;
+            transition: background-color var(--md-sys-motion-duration-short);
         }
         
         button:disabled {
@@ -69,7 +69,7 @@ export class M3MenuItem extends LitElement {
             inset: 0;
             background-color: currentColor;
             opacity: 0;
-            transition: opacity var(--md-sys-motion-duration-short) ease;
+            transition: opacity var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
             pointer-events: none;
             z-index: 1;
         }
