@@ -3,6 +3,5 @@ node_modules/
 .firebase/
 dist/
 *.log
-service-account-key.json
 .env
 .env.local

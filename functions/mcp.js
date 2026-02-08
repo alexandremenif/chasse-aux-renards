@@ -49,7 +49,7 @@ export const createMcpServer = (user) => {
                 boardId: z.string(),
                 name: z.string(),
                 cost: z.number().int(),
-                icon: z.string().optional()
+                icon: z.string().max(10).regex(/^[\p{Emoji}]+$/u, "Must be emoji characters only").optional()
             }
         },
         async ({ boardId, name, cost, icon }) => {
@@ -84,7 +84,7 @@ export const createMcpServer = (user) => {
                 rewardId: z.string(),
                 name: z.string().optional(),
                 cost: z.number().int().optional(),
-                icon: z.string().optional()
+                icon: z.string().max(10).regex(/^[\p{Emoji}]+$/u, "Must be emoji characters only").optional()
             }
         },
         async ({ boardId, rewardId, name, cost, icon }) => {

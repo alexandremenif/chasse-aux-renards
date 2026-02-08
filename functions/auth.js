@@ -1,11 +1,14 @@
 import { getFirestore } from "firebase-admin/firestore";
 
+// Generic error to prevent information disclosure
+const AUTH_ERROR = { error: "Unauthorized" };
+
 export const auth = async (req, res, next) => {
     const db = getFirestore();
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
-        console.error("Missing or invalid Authorization header");
-        return res.status(401).json({ error: "Unauthorized: Missing Bearer token" });
+        console.error("Auth failed: Missing or invalid Authorization header");
+        return res.status(401).json(AUTH_ERROR);
     }
 
     const token = authHeader.split(' ')[1];
@@ -19,8 +22,8 @@ export const auth = async (req, res, next) => {
             .get();
 
         if (snapshot.empty) {
-            console.error("Invalid API Key");
-            return res.status(401).send('Unauthorized: Invalid Token');
+            console.error("Auth failed: Invalid API key");
+            return res.status(401).json(AUTH_ERROR);
         }
 
         const tokenDoc = snapshot.docs[0];
@@ -31,23 +34,23 @@ export const auth = async (req, res, next) => {
             const now = new Date();
             const expires = new Date(tokenData.expiresAt);
             if (now > expires) {
-                 console.error("API Key Expired");
-                 return res.status(401).send('Unauthorized: Token Expired');
+                 console.error("Auth failed: Expired API key");
+                 return res.status(401).json(AUTH_ERROR);
             }
         }
 
         // Derive UID from path: users/{uid}/mcp_keys/{keyId}
         const userRef = tokenDoc.ref.parent.parent;
         if (!userRef) {
-            console.error("Orphaned token document (no parent user)");
-            return res.status(500).json({ error: "Internal Server Error: Invalid token structure" });
+            console.error("Auth failed: Orphaned token document");
+            return res.status(401).json(AUTH_ERROR);
         }
 
         const uid = userRef.id;
         const userDoc = await userRef.get();
         if (!userDoc.exists) {
-            console.error("User not found for this key");
-            return res.status(403).json({ error: "Forbidden: User not found" });
+            console.error("Auth failed: User not found for key");
+            return res.status(401).json(AUTH_ERROR);
         }
 
         const userData = userDoc.data();
@@ -60,7 +63,7 @@ export const auth = async (req, res, next) => {
         
         next();
     } catch (error) {
-        console.error("Auth Error:", error);
-        return res.status(500).json({ error: "Internal Server Error during Auth" });
+        console.error("Auth failed: Unexpected error", error);
+        return res.status(401).json(AUTH_ERROR);
     }
 };

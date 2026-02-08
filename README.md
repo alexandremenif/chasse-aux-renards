@@ -107,14 +107,9 @@ Instead of building a traditional "backoffice" UI for managing rewards, this pro
 *   **Works with multiple clients** — Use whichever chatbot you prefer.
 *   **Conversational UX** — "Add a Nintendo Switch reward for Jimmy that costs 500 renards" is more intuitive than navigating forms.
 
-### Compatible Clients
+### Compatibility
 
-| Client | Status | Notes |
-|--------|--------|-------|
-| **Claude Desktop** | ✅ Supported | Anthropic's official app |
-| **ChatGPT** | ✅ Supported | OpenAI's chatbot |
-| **Mistral Le Chat** | ✅ Supported | Mistral's chatbot |
-| **Google Gemini** | ❌ Not yet | No MCP support (CLI only) |
+This MCP server uses **API key authentication** (Bearer token). It is compatible with any MCP client that supports custom headers for authentication (e.g., Claude Desktop, Mistral Le Chat). Clients that require OAuth2 are not currently supported.
 
 ### Setup
 
