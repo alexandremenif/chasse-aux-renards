@@ -1,8 +1,10 @@
 # <img src="public/renard-icon.svg" width="64" alt="Renard Icon" style="vertical-align: middle;"> Chasse aux Renards
 
+
 > A digital reward board PWA built with **Lit** and Material 3 Design.
 
-**Chasse aux Renards** re-imagines the classic "token economy" reward system for children as a modern, interactive Progressive Web App (PWA). It replaces cardboard charts and physical tokens with a delightful digital experience, featuring animated counting mechanics and a parent-managed reward store.
+https://github.com/user-attachments/assets/0f09d1a9-3da9-4ffc-ba75-a837693d19e1
+
 
 ---
 
@@ -55,7 +57,7 @@ The app implements the **Google Material 3** design system from scratch:
 
 *   **Design Tokens**: A comprehensive `style.css` maps M3 tokens (Systems Colors, Typography Typescales, Elevation, Motion) to CSS Variables.
 *   **Theming**: Full support for Light and Dark modes using `prefers-color-scheme` and CSS `color-mix`.
-*   **Components**: Hand-crafted implementations of M3 Cards, Ripples, Dialogs, and FABs that adhere to the spec.
+*   **Components**: 16+ hand-crafted M3 components including Buttons, Cards, Dialogs, FABs, Menus, Text Fields, Date Pickers, and more.
 
 ### Backend & Security (Firebase)
 *   **Firestore**: Real-time database synchronizes the token count across devices instantly.
@@ -93,7 +95,8 @@ The project is powered by **Vite** for the build tooling and **Firebase** for ba
 
 3.  **Test Users**:
     *   **Parent**: `john.doe@example.com`
-    *   **Child**: `jane.doe@example.com`
+    *   **Child 1**: `jane.doe@example.com`
+    *   **Child 2**: `jimmy.doe@example.com`
 
 ---
 
@@ -115,6 +118,8 @@ This MCP server uses **API key authentication** (Bearer token). It is compatible
 
 1. **Generate an API key** by navigating to `/mcp` in the app (hidden settings page).
 
+![MCP Settings](https://github.com/user-attachments/assets/d1dbb8ad-3312-47a9-b61b-b77a3a59d249)
+
 2. **Add the MCP server to your client config** (example for Claude Desktop):
 
 ```json
@@ -135,6 +140,9 @@ This MCP server uses **API key authentication** (Bearer token). It is compatible
    - "Add a 'Movie Night' reward for Jane that costs 20 renards"
    - "Delete the park reward from Jimmy's board"
 
+![MCP Interaction](https://github.com/user-attachments/assets/59a2d95a-8261-42f7-a8fb-cbf61e2a51de)
+
+
 ### Available Tools
 
 | Tool | Description |
@@ -153,4 +161,4 @@ This MCP server uses **stateless HTTP-only transport** instead of Server-Sent Ev
 *   **JSON responses** — The server returns JSON directly instead of opening SSE streams.
 *   **GET requests rejected** — Only POST requests are accepted (`405 Method Not Allowed` for GET).
 
-This approach is fully compatible with the MCP specification and works with all standard clients.
+This approach follows the MCP HTTP transport specification, though it requires a client capable of sending custom authentication headers (API keys).
