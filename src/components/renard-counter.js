@@ -1,8 +1,10 @@
 import { LitElement, html, css, unsafeCSS } from 'lit';
-import { boardService } from '../services/board-service'
 import './m3/m3-card.js';
 import './renard-icon.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
+
+const PULSE_DURATION = 400;
+const TRANSFORM_DURATION = 1200;
 
 class RenardCounter extends LitElement {
     static properties = {
@@ -86,7 +88,7 @@ class RenardCounter extends LitElement {
             color: var(--md-sys-color-on-surface); /* Blackish */
         }
         
-        .counter-pulse { animation: pulse-anim var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized); }
+        .counter-pulse { animation: pulse-anim ${unsafeCSS(PULSE_DURATION)}ms var(--md-sys-motion-easing-emphasized); }
         
         @keyframes pulse-anim {
             0% { transform: scale(1); }
@@ -114,55 +116,31 @@ class RenardCounter extends LitElement {
         }
     `;
 
-    // Private Fields
-    #unsubscribeToken = () => {};
-    #shouldAnimate = false;
+
+    #pendingAnimation = false;
 
     constructor() {
         super();
         this.total = 0;
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-
-        this.#unsubscribeToken = boardService.onNewToken(() => {
-            // Signal that we should animate after the next update cycle
-            this.#shouldAnimate = true;
-        });
+    notifyTokenAdded() {
+        this.#pendingAnimation = true;
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.#unsubscribeToken();
-    }
-
-    updated(changedProperties) {
-        if (this.#shouldAnimate) {
+    updated() {
+        if (this.#pendingAnimation) {
             this.#playAnimation();
-            this.#shouldAnimate = false;
+            this.#pendingAnimation = false;
         }
-    }
-
-    #getMotionDuration(tokenName) {
-        // Helper to get duration in ms from CSS variable
-        const style = getComputedStyle(document.body);
-        const val = style.getPropertyValue(tokenName).trim();
-        if (val.endsWith('ms')) return parseInt(val, 10);
-        if (val.endsWith('s')) return parseFloat(val) * 1000;
-        return 0;
     }
 
     #playAnimation() {
         const counters = this.#calculateRenards(this.total);
 
         const normalCounterEl = this.shadowRoot.querySelector('#normal-container .counter-value');
-        if (normalCounterEl) {
-            normalCounterEl.classList.add('counter-pulse');
-            // Use 'medium' duration for pulse removal
-            const duration = this.#getMotionDuration('--md-sys-motion-duration-medium') || 400;
-            setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), duration);
-        }
+        normalCounterEl.classList.add('counter-pulse');
+        setTimeout(() => normalCounterEl.classList.remove('counter-pulse'), PULSE_DURATION);
 
         // Normal to Silver (includes the case where we go from 9 to 0)
         if (counters.silver > 0 && counters.normal == 0) {
@@ -214,27 +192,23 @@ class RenardCounter extends LitElement {
     #animateTransform(fromId, toId, particleType) {
         const fromContainer = this.shadowRoot.getElementById(fromId);
         const toContainer = this.shadowRoot.getElementById(toId);
-        if (!fromContainer || !toContainer) return;
 
         const fromRect = fromContainer.getBoundingClientRect();
         const toRect = toContainer.getBoundingClientRect();
-
-        // Use 'extra-long' duration (2x long) for the coin shower effect to create delight.
-        const longDuration = this.#getMotionDuration('--md-sys-motion-duration-long') || 600;
-        const animDuration = longDuration * 2; 
 
         for (let i = 0; i < 10; i++) {
             const particle = document.createElement('renard-icon');
             particle.setAttribute('type', particleType);
             particle.setAttribute('size', '40px');
+            particle.classList.add('animation-particle');
             Object.assign(particle.style, {
                 position: 'fixed', zIndex: 'var(--md-sys-z-index-tooltip)',
                 left: `${fromRect.left + fromRect.width / 2 + (Math.random() - 0.5) * 40 - 20}px`,
                 top: `${fromRect.top + fromRect.height / 2 + (Math.random() - 0.5) * 40 - 20}px`,
-                transition: `all ${animDuration}ms ease-in-out`, pointerEvents: 'none'
+                transition: `all ${TRANSFORM_DURATION}ms ease-in-out`, pointerEvents: 'none'
             });
 
-            document.body.appendChild(particle);
+            this.shadowRoot.appendChild(particle);
 
             requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -245,7 +219,7 @@ class RenardCounter extends LitElement {
                 }, 50);
             });
 
-            setTimeout(() => particle.remove(), animDuration + 100);
+            setTimeout(() => particle.remove(), TRANSFORM_DURATION + 100);
         }
     }
 }

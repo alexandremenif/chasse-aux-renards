@@ -5,3 +5,6 @@ dist/
 *.log
 .env
 .env.local
+.vitest-attachments/
+coverage/
+test/__screenshots__/

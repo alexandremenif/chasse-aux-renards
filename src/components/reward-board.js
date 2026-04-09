@@ -2,6 +2,7 @@
 // components/reward-board.js
 import { LitElement, html, css, unsafeCSS } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
+import { createRef, ref } from 'lit/directives/ref.js';
 import { userService } from '../services/user-service.js';
 import { boardService } from '../services/board-service.js';
 import { M3Breakpoints } from './m3/m3-breakpoints.js';
@@ -47,6 +48,8 @@ class RewardBoard extends LitElement {
 
     // Private Fields
     #unsubscribeBoard = null;
+    #unsubscribeToken = null;
+    #counterRef = createRef();
 
     constructor() {
         super();
@@ -58,13 +61,15 @@ class RewardBoard extends LitElement {
         this.#unsubscribeBoard = boardService.onCurrentBoardUpdated(boardData => {
             this.boardData = boardData;
         });
+        this.#unsubscribeToken = boardService.onNewToken(() => {
+            this.#counterRef.value?.notifyTokenAdded();
+        });
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        if (this.#unsubscribeBoard) {
-            this.#unsubscribeBoard();
-        }
+        this.#unsubscribeBoard?.();
+        this.#unsubscribeToken?.();
     }
 
     #handleRewardClick(rewardId) {
@@ -110,7 +115,7 @@ class RewardBoard extends LitElement {
         });
 
         return html`
-            <renard-counter total="${availableToken}"></renard-counter>
+            <renard-counter ${ref(this.#counterRef)} total="${availableToken}"></renard-counter>
             <section>
                 <h2>Les Récompenses</h2>
                 <div class="rewards-container">
