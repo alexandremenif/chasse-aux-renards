@@ -34,17 +34,19 @@ export class M3Card extends LitElement {
 
         /* Variants */
         .filled {
-            background-color: var(--md-sys-color-surface-container-highest); 
+            background-color: var(--m3-card-bg, var(--md-sys-color-surface-container-highest)); 
+            box-shadow: var(--m3-card-shadow, none);
         }
         
         .outlined {
-            background-color: var(--md-sys-color-surface);
-            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--m3-card-bg, var(--md-sys-color-surface));
+            border: var(--m3-card-border, 1px solid var(--md-sys-color-outline-variant));
+            box-shadow: var(--m3-card-shadow, none);
         }
 
         .elevated {
-            background-color: var(--md-sys-color-surface-container-low);
-            box-shadow: var(--md-sys-elevation-1);
+            background-color: var(--m3-card-bg, var(--md-sys-color-surface-container-low));
+            box-shadow: var(--m3-card-shadow, var(--md-sys-elevation-1));
         }
 
         /* Tint Layer */

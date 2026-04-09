@@ -20,12 +20,6 @@ class RewardCard extends LitElement {
     static styles = css`
         :host { display: block; height: 100%; position: relative; }
 
-        m3-card {
-            height: 100%;
-            /* Padding handled by m3-card default (16px / md-sys-spacing-16) */
-        }
-        
-        /* Internal Layout Wrapper to replace the old div behavior */
         .card-content {
             display: flex;
             align-items: center;
@@ -33,7 +27,6 @@ class RewardCard extends LitElement {
             gap: var(--md-sys-spacing-16);
             height: 100%;
             box-sizing: border-box;
-            /* Padding removed to avoid double padding with m3-card container */
         }
 
         @media (min-width: ${unsafeCSS(M3Breakpoints.MEDIUM)}) {
@@ -46,8 +39,6 @@ class RewardCard extends LitElement {
             }
         }
 
-        /* State Styling via ::part NO LONGER NEEDED, WE BIND CLASSES VIA LIT */
-        
         /* Locked State */
         :host(.state-locked) m3-card {
             opacity: 0.6;
@@ -55,35 +46,12 @@ class RewardCard extends LitElement {
         }
 
         /* Pending State */
-        :host(.state-pending) m3-card {
-             /* We need to apply style to the card's internal part or the card itself. 
-                Since m3-card exposes 'card' part, we can use ::part(card) if we were outside.
-                Inside here, we can't easily style ::part of child unless we use specific selectors 
-                OR we assume m3-card styles are handled by its properties.
-                
-                Workaround: LitElement styles don't easily pierce shadow DOM of children via just classes.
-                We have to rely on m3-card exposing custom properties or parts.
-             */
-        }
-        
-        /* We'll inject styles that target the m3-card's part from here? No that doesn't work. */
-        /* m3-card allows standard inheritance. */
-        /* But the background color is set inside m3-card. */
-        
-        /* Let's use specific selector that m3-card might support or pass a variant? */
-        /* Or we keep the implementation using ::part in global styles? No, encapsulate. */
-        
-        m3-card::part(card) {
-             transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        :host([pending]) m3-card::part(card) {
-            background-color: var(--md-sys-color-surface-container); 
-            box-shadow: var(--md-sys-elevation-1), inset 0 0 0 2px var(--renard-token-gold-fill);
+        :host([pending]) m3-card {
+            --m3-card-bg: var(--md-sys-color-surface-container); 
+            --m3-card-shadow: var(--md-sys-elevation-1), inset 0 0 0 2px var(--renard-token-gold-fill);
         }
 
         .emoji {
-            /* font-size: 30px; -> Headline Large */
             font: var(--md-sys-typescale-headline-large);
             display: flex;
             align-items: center;
@@ -91,7 +59,6 @@ class RewardCard extends LitElement {
             line-height: 1;
         }
         @media (min-width: ${unsafeCSS(M3Breakpoints.MEDIUM)}) { 
-            /* .emoji { font-size: 48px; } -> Display Medium */
             .emoji { font: var(--md-sys-typescale-display-medium); } 
         }
         
@@ -150,15 +117,6 @@ class RewardCard extends LitElement {
             }
         }
     `;
-
-    constructor() {
-        super();
-        this.label = 'Récompense';
-        this.cost = 0;
-        this.emoji = '🎁';
-        this.availableToken = 0;
-        this.pending = false;
-    }
 
     #handleConfirmClick(e) {
         e.stopPropagation();
